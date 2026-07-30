@@ -1,0 +1,67 @@
+You are an expert Frontend Developer and UI/UX Designer. Your task is to redesign the entire frontend of the website "Elanpro" (elanpro.net), India's leading company for commercial refrigeration, freezers, and reach-in chillers. The project must be purely frontend (no database or backend).
+
+Project Requirements & Business Context:
+
+Business Purpose: Showcase commercial refrigeration solutions, beverage equipment, and after-sales services for B2B clients.
+Tech Stack: Use standard web technologies: HTML5, CSS3, and JavaScript (or React/Vite if you prefer a modern SPA approach).
+Scope: Create a multi-page website or seamless single-page application. Ensure routing is set up for the following pages/sections:
+Home: High-impact hero section with a background image, product highlights, industries served, and core values.
+Products (Catalog): A grid layout showcasing specific product lines using mock JSON data and images.
+Industries: Specific solutions tailored for different sectors.
+Services & Support: Highlighting after-sales support and the nationwide distribution network.
+About Us: Company history, mission, and vision.
+Contact Us: A modern UI contact form (UI only) and location maps/details.
+Content & Data (Use this for Mock Data): Products to include:
+
+Commercial Refrigeration: Deep freezers, chest freezers, visi-coolers, pastry/confectionery showcases, under-counter chillers, reach-in refrigerators, back-bar chillers, wine chillers, and absorption minibars.
+Food Service & Beverage Equipment: Ice cube machines, beer/soda dispensing systems, and professional espresso/filter coffee machines.
+Specialized Solutions: Life science and laboratory refrigeration.
+Industries to include:
+
+Hospitality (Hotels, Resorts)
+Retail (Supermarkets, Bakeries, Convenience Stores)
+Food & Beverage (QSRs, Cafés, Bars)
+Healthcare & Life Sciences (Laboratories, Medical Storage)
+Services to highlight: Nationwide distribution network and premium after-sales support/maintenance.
+
+Images & Media (CRITICAL):
+
+Density & Volume: The original Elanpro website is highly visual and uses a large number of images. You must replicate this image density. Ensure the design has many image slots (galleries, carousels, dense product grids, background images, and multiple industry banners) so the new site accommodates just as many photos as the real one. Do not make the design text-heavy or sparse.
+The user intends to upload their own images for the products and industries. Therefore, you must set up a clear, structured assets folder (e.g., /assets/images/products/ and /assets/images/industries/).
+While developing, use high-quality Unsplash placeholders, but structure the code and mock data (JSON arrays) so the user can easily swap these out with local file paths once they upload their assets. Examples of placeholders to use in the meantime:
+Hero Background: https://source.unsplash.com/1600x900/?restaurant,kitchen or commercial,refrigeration
+Coffee Machines: https://source.unsplash.com/600x400/?espresso,machine
+Supermarket/Retail: https://source.unsplash.com/600x400/?supermarket,aisle
+Hospitality: https://source.unsplash.com/600x400/?hotel,room
+Make sure all images have object-fit: cover; applied so they don't stretch, and round the corners for a modern feel.
+Include instructions as HTML/JS comments exactly where the user needs to point to their own product/industry images once they have uploaded them to the assets folder.
+Design Guidelines & Aesthetics (CRITICAL):
+
+Original Identity: Maintain the brand identity but DO NOT copy the exact old layout. It must feel like a completely new, premium, and upgraded version.
+Color Palette & CSS Variables:
+Primary Colors: --color-primary: #0056a5;, --color-primary-dark: #225BA5;
+Accent Colors: --color-accent: #FFB900; (Warm yellow/orange for calls-to-action)
+Background Colors: --bg-white: #ffffff;, --bg-off-white: #f4f7f6;, --bg-light-blue: #dcebf9;
+Text Colors (CRITICAL FOR CONTRAST):
+When using white or light backgrounds (#ffffff, #f4f7f6, #dcebf9), you MUST explicitly set the text color to a dark shade like --text-dark: #1a1a1a; or --text-slate: #334155; to ensure high contrast and readability. Do not rely on default browser styles. If text gets hidden against a white background, it's a failure of contrast mapping.
+When using dark backgrounds (like the primary blue), use --text-light: #ffffff; or --text-off-white: #f8fafc;.
+Typography: Use modern, clean sans-serif fonts (e.g., Inter, Roboto, or Poppins). Define CSS variables like --font-primary: 'Inter', sans-serif;.
+Theme & CSS Utilities: Professional, B2B, industrial, trustworthy, yet highly modern. Implement elements like glassmorphism (using backdrop-filter: blur(10px) and semi-transparent white or black backgrounds), soft deep shadows (box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1)), and clean grid layouts (display: grid; gap: 2rem;).
+Animations & Interactions:
+
+Make the website feel alive. Implement smooth animations throughout:
+Scroll Animations: Sections, text, and images should fade-in, slide-up, or stagger as they enter the viewport.
+Hover Effects: Add holographic or shine effects on product cards. Images should zoom slightly on hover (transform: scale(1.05)). Buttons should have satisfying micro-interactions (scale up slightly, color transition).
+Gradient Borders: Use animated gradient borders on key feature boxes or core value cards.
+Navigation: A sticky header that changes style (e.g., gains a glassmorphism blur) on scroll, with smooth dropdown menus.
+Execution Steps for Replit:
+
+Initialize: Setup the boilerplate.
+Design System: Define the CSS variables globally.
+Mock Data: Create JavaScript objects/arrays holding the product lists and industries mentioned above, paired with Unsplash image URLs.
+Layout: Build the global Header (navigation) and Footer.
+Pages Development: Build out all the requested pages using the mock data. Ensure images are injected properly.
+Animation Pass: Integrate CSS keyframes, transitions, and scroll reveals to add the requested animations.
+Responsive Polish: Ensure the design looks impeccable on Mobile, Tablet, and Desktop.
+Please begin by generating the structural layout, injecting the mock data with Unsplash images, and configuring the design system.
+
