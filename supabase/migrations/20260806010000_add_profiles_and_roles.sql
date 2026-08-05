@@ -1,10 +1,10 @@
 -- Create enum type for roles
-CREATE TYPE user_role AS ENUM ('admin', 'user');
+CREATE TYPE public.user_role AS ENUM ('admin', 'user');
 
 -- Create profiles table linked to auth.users
 CREATE TABLE public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  role user_role DEFAULT 'user'::user_role NOT NULL,
+  role public.user_role DEFAULT 'user'::public.user_role NOT NULL,
   first_name TEXT,
   last_name TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
@@ -29,13 +29,16 @@ CREATE POLICY "Users can update own profile."
 
 -- Function to handle new user signup and auto-create profile
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger AS $$
+RETURNS trigger 
+LANGUAGE plpgsql 
+SECURITY DEFINER SET search_path = public
+AS $$
 BEGIN
   INSERT INTO public.profiles (id, role)
-  VALUES (new.id, 'user'::user_role);
+  VALUES (new.id, 'user'::public.user_role);
   RETURN new;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Trigger to run the function after a user signs up
 CREATE TRIGGER on_auth_user_created
