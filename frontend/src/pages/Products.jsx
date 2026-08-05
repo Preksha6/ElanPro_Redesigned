@@ -1,15 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/motion";
-import { MOCK_PRODUCTS, CATEGORIES } from "@/data/mockData";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 
 export default function Products() {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          supabase.from('products').select('*'),
+          supabase.from('categories').select('name').order('id', { ascending: true })
+        ]);
+        
+        if (productsRes.data) setProducts(productsRes.data);
+        if (categoriesRes.data) setCategories(categoriesRes.data.map(c => c.name));
+      } catch (error) {
+        console.error("Error fetching products data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   const filteredProducts = activeCategory === "All" ?
-  MOCK_PRODUCTS :
-  MOCK_PRODUCTS.filter((p) => p.category === activeCategory);
+  products :
+  products.filter((p) => p.category === activeCategory);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading products...</div>;
 
   return (
     <Layout>
@@ -39,19 +63,19 @@ export default function Products() {
               
               All Products
             </button>
-            {CATEGORIES.map((cat) =>
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
-              activeCategory === cat ?
-              "bg-primary text-white shadow-md" :
-              "bg-white text-gray-600 border border-gray-200 hover:border-primary hover:text-primary"}`
-              }>
-              
-                {cat}
-              </button>
-            )}
+            {categories.map((cat) =>
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                activeCategory === cat ?
+                "bg-primary text-white shadow-md" :
+                "bg-white text-gray-600 border border-gray-200 hover:border-primary hover:text-primary"}`
+                }>
+                
+                  {cat}
+                </button>
+              )}
           </FadeIn>
 
           {/* Grid — key forces remount on filter change so framer-motion re-animates */}

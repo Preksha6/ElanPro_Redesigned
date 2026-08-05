@@ -13,6 +13,13 @@ import Services from '@/pages/Services';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 
+import AdminLayout from '@/components/admin/AdminLayout';
+import Login from '@/pages/admin/Login';
+import Dashboard from '@/pages/admin/Dashboard';
+import ManageCategories from '@/pages/admin/ManageCategories';
+import ManageProducts from '@/pages/admin/ManageProducts';
+import ManageIndustries from '@/pages/admin/ManageIndustries';
+
 const queryClient = new QueryClient();
 
 function Router() {
@@ -26,6 +33,29 @@ function Router() {
       <Route path="/services" component={Services} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
+      
+      {/* Admin Routes */}
+      <Route path="/admin/login" component={Login} />
+      <Route path="/admin">
+        <AdminLayout>
+          <Dashboard />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/categories">
+        <AdminLayout>
+          <ManageCategories />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/products">
+        <AdminLayout>
+          <ManageProducts />
+        </AdminLayout>
+      </Route>
+      <Route path="/admin/industries">
+        <AdminLayout>
+          <ManageIndustries />
+        </AdminLayout>
+      </Route>
       <Route component={NotFound} />
     </Switch>);
 

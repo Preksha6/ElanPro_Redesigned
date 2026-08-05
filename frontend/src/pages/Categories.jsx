@@ -4,13 +4,34 @@ import { Layout } from "@/components/layout/Layout";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 import { Search, Filter, Box, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/data/mockData";
+import { supabase } from "@/lib/supabase";
 
 export default function Categories() {
   const [location] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [catsRes, prodsRes] = await Promise.all([
+          supabase.from('categories').select('*').order('id', { ascending: true }),
+          supabase.from('products').select('*')
+        ]);
+        if (catsRes.data) setCategories(catsRes.data);
+        if (prodsRes.data) setProducts(prodsRes.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   // Sync search term from navbar
   useEffect(() => {
@@ -40,12 +61,14 @@ export default function Categories() {
     }
   }, [location]);
 
-  const filteredProducts = MOCK_PRODUCTS.filter(p => {
+  const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          p.description.toLowerCase().includes(searchTerm.toLowerCase());
+                          (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = activeCategory === "all" || p.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading categories...</div>;
 
   return (
     <Layout>
@@ -78,12 +101,12 @@ export default function Categories() {
                   >
                     <span className="font-medium">All Products</span>
                     <span className={`text-xs px-2 py-1 rounded-md ${activeCategory === "all" ? "bg-white/20" : "bg-gray-100 text-gray-500"}`}>
-                      {MOCK_PRODUCTS.length}
+                      {products.length}
                     </span>
                   </button>
                   
-                  {MOCK_CATEGORIES.map(category => {
-                    const productCount = MOCK_PRODUCTS.filter(p => p.category === category.name).length;
+                  {categories.map(category => {
+                    const productCount = products.filter(p => p.category === category.name).length;
                     return (
                       <button
                         key={category.id}

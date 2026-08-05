@@ -26,8 +26,7 @@ const BRAND_LOGOS = [
   { name: "Bacardi", url: "https://elanpro.net/wp-content/uploads/2025/06/bacardi.png" },
   { name: "Carlsberg", url: "https://elanpro.net/wp-content/uploads/2025/06/carlsberg.png" }
 ];
-import { MOCK_STATS, MOCK_PRODUCTS, MOCK_INDUSTRIES } from "@/data/mockData";
-
+import { supabase } from "@/lib/supabase";
 // Simple counter hook
 function useCounter(end, duration = 2000) {
   const [count, setCount] = useState(0);
@@ -80,7 +79,33 @@ function StatCard({ stat, index }) {
 }
 
 export default function Home() {
-  const topProducts = MOCK_PRODUCTS.slice(0, 4);
+  const [stats, setStats] = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
+  const [industries, setIndustries] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [statsRes, productsRes, industriesRes] = await Promise.all([
+          supabase.from('stats').select('*').order('id', { ascending: true }),
+          supabase.from('products').select('*').limit(4),
+          supabase.from('industries').select('*')
+        ]);
+        
+        if (statsRes.data) setStats(statsRes.data);
+        if (productsRes.data) setTopProducts(productsRes.data);
+        if (industriesRes.data) setIndustries(industriesRes.data);
+      } catch (error) {
+        console.error("Error fetching home data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">Loading...</div>;
 
   return (
     <Layout>
@@ -146,7 +171,7 @@ export default function Home() {
           <div className="bg-white/70 backdrop-blur-xl border border-white shadow-2xl shadow-gray-200/50 rounded-[2.5rem] p-4 md:p-6 overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary" />
             <StaggerContainer className="grid grid-cols-3 gap-2 md:gap-8">
-              {MOCK_STATS.map((stat, i) => (
+              {stats.map((stat, i) => (
                 <StatCard key={i} stat={stat} index={i} />
               ))}
             </StaggerContainer>
@@ -260,7 +285,7 @@ export default function Home() {
 
           <FadeIn delay={0.3}>
             <div className="flex flex-col lg:flex-row h-[600px] sm:h-[700px] lg:h-[400px] gap-4 w-full">
-              {MOCK_INDUSTRIES.map((ind, i) => (
+              {industries.map((ind, i) => (
                 <div 
                   key={ind.id} 
                   className="group relative flex-1 hover:flex-[2] lg:hover:flex-[3.5] transition-all duration-[800ms] ease-[cubic-bezier(0.25,1,0.5,1)] overflow-hidden rounded-3xl cursor-pointer shadow-2xl border border-white/5 bg-gray-900"

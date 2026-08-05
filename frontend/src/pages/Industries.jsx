@@ -1,10 +1,29 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { FadeIn } from "@/components/ui/motion";
-import { MOCK_INDUSTRIES } from "@/data/mockData";
+import { supabase } from "@/lib/supabase";
 import { CheckCircle2 } from "lucide-react";
 
 export default function Industries() {
+  const [industries, setIndustries] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const { data } = await supabase.from('industries').select('*').order('name');
+        if (data) setIndustries(data);
+      } catch (error) {
+        console.error("Error fetching industries:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+
   return (
     <Layout>
       <div className="pt-32 pb-20 bg-gray-900 text-white relative overflow-hidden">
@@ -20,7 +39,7 @@ export default function Industries() {
       </div>
 
       <div className="bg-background">
-        {MOCK_INDUSTRIES.map((ind, i) => {
+        {industries.map((ind, i) => {
           const isEven = i % 2 === 0;
           return (
             <section key={ind.id} className={`py-16 md:py-16 ${isEven ? 'bg-white' : 'bg-secondary/10'}`}>

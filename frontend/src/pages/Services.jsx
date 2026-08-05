@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/motion";
-import { MOCK_SERVICES } from "@/data/mockData";
+import { supabase } from "@/lib/supabase";
 import { Truck, Headphones, Wrench, ShieldCheck, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +12,25 @@ const iconMap = {
 };
 
 export default function Services() {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const { data } = await supabase.from('services').select('*').order('id');
+        if (data) setServices(data);
+      } catch (error) {
+        console.error("Error fetching services:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+
   return (
     <Layout>
       <div className="pt-32 pb-20 bg-primary text-white text-center relative overflow-hidden">
@@ -27,7 +46,7 @@ export default function Services() {
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4 md:px-6">
           <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {MOCK_SERVICES.map((srv) =>
+            {services.map((srv) =>
             <StaggerItem key={srv.id}>
                 <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 h-full hover:shadow-xl transition-shadow">
                   <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-6">
