@@ -150,12 +150,12 @@ export default function Home() {
           </FadeIn>
           
           <FadeIn delay={0.3} className="flex flex-col sm:flex-row justify-center gap-5 w-full sm:w-auto">
-            <Button asChild size="lg" className="h-14 px-8 text-base font-bold bg-accent text-accent-dark hover:bg-accent-light rounded-sm transition-all shadow-[0_0_20px_rgba(255,193,7,0.3)] hover:shadow-[0_0_30px_rgba(255,193,7,0.5)] border-none">
+            <Button asChild size="lg" className="h-14 px-8 text-base font-bold bg-accent text-accent-dark hover:bg-accent-light rounded-sm transition-all shadow-[0_0_20px_rgba(0,102,255,0.3)] hover:shadow-[0_0_30px_rgba(0,102,255,0.5)] border-none">
               <Link href="/products">
                 Explore Products <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="h-14 px-8 text-base font-bold border-2 border-white/30 text-white hover:bg-white hover:text-primary rounded-sm transition-all backdrop-blur-sm">
+            <Button asChild variant="outline" size="lg" className="h-14 px-8 text-base font-bold border-2 border-white/30 text-white hover:bg-white hover:text-primary rounded-sm transition-all backdrop-blur-sm shadow-sm hover:shadow-md">
               <Link href="/contact">
                 Request a Quote
               </Link>
@@ -462,7 +462,7 @@ export default function Home() {
             <p className="text-primary-light text-base md:text-lg mb-8 max-w-2xl mx-auto">
               Consult with our experts today to design the perfect refrigeration setup for your specific needs.
             </p>
-            <Button asChild size="lg" className="h-12 px-8 bg-accent text-gray-900 hover:bg-accent/90 text-base font-bold rounded-full shadow-[0_0_40px_rgba(255,185,0,0.4)] transition-all">
+            <Button asChild size="lg" className="h-12 px-8 bg-accent text-white hover:bg-accent/90 text-base font-bold rounded-full shadow-[0_0_40px_rgba(0,102,255,0.4)] transition-all">
               <Link href="/contact">
                 Request a Consultation
               </Link>
