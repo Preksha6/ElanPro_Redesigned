@@ -6,9 +6,9 @@ import { Truck, Headphones, Wrench, ShieldCheck, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const iconMap = {
-  truck: <Truck className="w-8 h-8 text-primary" />,
-  headphones: <Headphones className="w-8 h-8 text-primary" />,
-  wrench: <Wrench className="w-8 h-8 text-primary" />
+  truck: <Truck className="w-8 h-8 text-accent" />,
+  headphones: <Headphones className="w-8 h-8 text-accent" />,
+  wrench: <Wrench className="w-8 h-8 text-accent" />
 };
 
 export default function Services() {
@@ -48,12 +48,22 @@ export default function Services() {
           <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {services.map((srv) =>
             <StaggerItem key={srv.id}>
-                <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 h-full hover:shadow-xl transition-shadow">
-                  <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-6">
-                    {iconMap[srv.icon]}
+                <div className="group relative rounded-3xl overflow-hidden h-full min-h-[320px] hover:shadow-2xl transition-all duration-300 border border-white/10">
+                  <img 
+                    src={srv.icon === 'truck' ? 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=800&q=80' : srv.icon === 'headphones' ? 'https://images.unsplash.com/photo-1534536281715-e28d76689b4d?w=800&q=80' : 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&q=80'} 
+                    alt={srv.title} 
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                  />
+                  {/* Lighter overlay so the image is visible */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/50 to-primary/10 group-hover:bg-primary/30 transition-colors duration-500" />
+                  
+                  <div className="relative z-10 p-8 flex flex-col h-full text-white">
+                    <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20 text-white shadow-sm">
+                      {iconMap[srv.icon] || <ShieldCheck className="w-8 h-8 text-accent" />}
+                    </div>
+                    <h3 className="text-2xl font-display font-bold text-white mb-4 drop-shadow-md">{srv.title}</h3>
+                    <p className="text-gray-100 leading-relaxed drop-shadow-sm flex-grow">{srv.description}</p>
                   </div>
-                  <h3 className="text-2xl font-display font-bold text-gray-900 mb-4">{srv.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{srv.description}</p>
                 </div>
               </StaggerItem>
             )}

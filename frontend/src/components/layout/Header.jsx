@@ -27,15 +27,15 @@ export function Header() {
     { name: "Catalogues", path: "/catalogues" },
     { name: "Industries", path: "/industries" },
     { name: "Services", path: "/services" },
+    { name: "Clients", path: "/clients" },
     { name: "About", path: "/about" },
   ];
 
   return (
-    <header className="fixed top-0 w-full z-50 pt-4 px-4 md:px-8">
-      <div className="container mx-auto max-w-7xl">
-        <div className="bg-white rounded-full px-6 py-3 shadow-md border border-gray-100 flex items-center justify-between">
-          
-          {/* Logo */}
+    <header className="fixed top-0 w-full z-50">
+      <div className="w-full bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 md:px-12 py-3 flex items-center justify-between shadow-sm">
+        
+        {/* Logo */}
           <Link href="/">
             <div className="cursor-pointer flex items-center justify-center bg-primary px-4 py-2 rounded-xl shadow-sm hover:bg-primary/90 transition-colors">
               <img src={logo} alt="Elanpro Logo" className="h-6 md:h-7 w-auto object-contain" />
@@ -87,7 +87,6 @@ export function Header() {
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
-        </div>
       </div>
 
       {/* Mobile Menu */}

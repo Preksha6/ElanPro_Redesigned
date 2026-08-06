@@ -77,7 +77,7 @@ export default function Categories() {
           
           <FadeIn>
             <div className="text-center max-w-3xl mx-auto mb-12">
-              <h1 className="text-3xl md:text-4xl font-display font-bold text-primary mb-6">Product Catalog</h1>
+              <h1 className="text-3xl md:text-4xl font-display font-bold text-primary mb-6">Explore by Category</h1>
               <p className="text-lg text-gray-600">Search and filter our comprehensive range of commercial cooling solutions by category.</p>
             </div>
           </FadeIn>

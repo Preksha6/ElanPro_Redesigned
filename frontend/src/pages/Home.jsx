@@ -362,16 +362,20 @@ export default function Home() {
             
             {/* Card 1: Large Feature (Span 2x2) */}
             <FadeIn delay={0.1} className="md:col-span-2 lg:col-span-2 row-span-2 group">
-              <div className="h-full p-6 md:p-8 rounded-3xl bg-gradient-to-br from-primary to-primary-dark text-white shadow-2xl relative overflow-hidden transition-transform duration-500 hover:-translate-y-2">
-                <div className="absolute -right-20 -top-20 opacity-10 group-hover:opacity-20 group-hover:rotate-12 transition-all duration-700 pointer-events-none">
-                  <Shield className="w-96 h-96" />
+              <div className="h-full p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-transform duration-500 hover:-translate-y-2 border border-white/10 group/card">
+                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1000&q=80" alt="Reliability" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-105" />
+                {/* Lighter overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/50 to-primary/10 group-hover/card:bg-primary/30 transition-colors duration-500" />
+                
+                <div className="absolute -right-20 -top-20 opacity-10 group-hover:opacity-20 group-hover:rotate-12 transition-all duration-700 pointer-events-none z-10">
+                  <Shield className="w-96 h-96 text-white" />
                 </div>
-                <div className="relative z-10 flex flex-col h-full">
+                <div className="relative z-20 flex flex-col h-full text-white">
                   <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20 group-hover:scale-110 transition-transform duration-500">
                     <Shield className="w-6 h-6 text-accent" />
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-display font-bold mb-4">Unmatched Reliability</h3>
-                  <p className="text-primary-light text-base md:text-lg leading-relaxed max-w-lg mb-8 flex-grow">
+                  <h3 className="text-2xl md:text-3xl font-display font-bold mb-4 drop-shadow-md">Unmatched Reliability</h3>
+                  <p className="text-gray-200 text-base md:text-lg leading-relaxed max-w-lg mb-8 flex-grow drop-shadow-sm">
                     Engineered for harsh environments, erratic power supplies, and peak hour stresses. We minimize your downtime so you can maximize your revenue.
                   </p>
                   <div className="inline-flex items-center text-white font-bold text-lg cursor-pointer group/link">
@@ -383,47 +387,60 @@ export default function Home() {
 
             {/* Card 2: Standard Square */}
             <FadeIn delay={0.2} className="col-span-1 group">
-              <div className="h-full p-6 rounded-3xl bg-white shadow-lg hover:shadow-2xl border border-gray-100 relative overflow-hidden transition-all duration-500 hover:-translate-y-2">
-                <div className="absolute right-0 top-0 w-32 h-32 bg-accent/5 rounded-bl-full pointer-events-none group-hover:bg-accent/10 transition-colors" />
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-6 group-hover:bg-accent group-hover:text-white transition-colors duration-500">
-                  <Zap className="w-5 h-5 text-accent group-hover:text-white transition-colors" />
+              <div className="h-full p-6 rounded-3xl shadow-lg hover:shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-2 group/card border border-white/10">
+                <img src="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&q=80" alt="Energy Efficient" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-105" />
+                {/* Lighter overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/50 to-primary/10 group-hover/card:bg-primary/30 transition-colors duration-500" />
+                
+                <div className="relative z-10 text-white flex flex-col h-full justify-end">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20 group-hover:bg-accent group-hover:text-white group-hover:border-accent transition-colors duration-500">
+                    <Zap className="w-5 h-5 text-accent group-hover:text-white transition-colors" />
+                  </div>
+                  <h3 className="text-xl font-display font-bold mb-3 drop-shadow-md">Energy Efficient</h3>
+                  <p className="text-gray-200 leading-relaxed text-sm md:text-base drop-shadow-sm">
+                    Advanced compressors and thick-wall insulation technologies that drastically cut down your operational utility costs.
+                  </p>
                 </div>
-                <h3 className="text-xl font-display font-bold text-gray-900 mb-3">Energy Efficient</h3>
-                <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-                  Advanced compressors and thick-wall insulation technologies that drastically cut down your operational utility costs.
-                </p>
               </div>
             </FadeIn>
 
             {/* Card 3: Standard Square */}
             <FadeIn delay={0.3} className="col-span-1 group">
-              <div className="h-full p-6 rounded-3xl bg-white shadow-lg hover:shadow-2xl border border-gray-100 relative overflow-hidden transition-all duration-500 hover:-translate-y-2">
-                <div className="absolute right-0 top-0 w-32 h-32 bg-blue-500/5 rounded-bl-full pointer-events-none group-hover:bg-blue-500/10 transition-colors" />
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-500">
-                  <ThermometerSnowflake className="w-5 h-5 text-blue-500 group-hover:text-white transition-colors" />
+              <div className="h-full p-6 rounded-3xl shadow-lg hover:shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-2 group/card border border-white/10">
+                <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80" alt="Precision Cooling" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-105" />
+                {/* Lighter overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/50 to-primary/10 group-hover/card:bg-primary/30 transition-colors duration-500" />
+                
+                <div className="relative z-10 text-white flex flex-col h-full justify-end">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20 group-hover:bg-accent group-hover:text-white group-hover:border-accent transition-colors duration-500">
+                    <ThermometerSnowflake className="w-5 h-5 text-accent group-hover:text-white transition-colors" />
+                  </div>
+                  <h3 className="text-xl font-display font-bold mb-3 drop-shadow-md">Precision Cooling</h3>
+                  <p className="text-gray-200 leading-relaxed text-sm md:text-base drop-shadow-sm">
+                    Microprocessor-controlled thermostats guarantee exact temperature maintenance without harmful fluctuations.
+                  </p>
                 </div>
-                <h3 className="text-xl font-display font-bold text-gray-900 mb-3">Precision Cooling</h3>
-                <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-                  Microprocessor-controlled thermostats guarantee exact temperature maintenance without harmful fluctuations.
-                </p>
               </div>
             </FadeIn>
 
             {/* Card 4: Wide Horizontal (Span 3) */}
             <FadeIn delay={0.4} className="md:col-span-2 lg:col-span-3 group">
-              <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-r from-gray-900 to-slate-800 text-white shadow-2xl relative overflow-hidden transition-transform duration-500 hover:-translate-y-1 flex flex-col md:flex-row items-center gap-6 border border-gray-700">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none mix-blend-overlay" />
-                <div className="w-14 h-14 shrink-0 rounded-full bg-white/5 border border-white/10 backdrop-blur flex items-center justify-center relative z-10">
+              <div className="p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-transform duration-500 hover:-translate-y-1 flex flex-col md:flex-row items-center gap-6 border border-white/10 group/card">
+                <img src="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?w=1200&q=80" alt="24/7 Support" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-105" />
+                {/* Lighter overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/60 to-slate-900/10 group-hover/card:bg-slate-900/30 transition-colors duration-500" />
+                
+                <div className="w-14 h-14 shrink-0 rounded-full bg-white/10 border border-white/20 backdrop-blur flex items-center justify-center relative z-10">
                   <Clock className="w-7 h-7 text-accent group-hover:animate-pulse" />
                 </div>
-                <div className="relative z-10 text-center md:text-left flex-grow">
-                  <h3 className="text-2xl font-display font-bold mb-2">24/7 Pan-India Support</h3>
-                  <p className="text-gray-400 text-lg">
+                <div className="relative z-10 text-center md:text-left flex-grow text-white">
+                  <h3 className="text-2xl font-display font-bold mb-2 drop-shadow-md">24/7 Pan-India Support</h3>
+                  <p className="text-gray-300 text-lg drop-shadow-sm">
                     Our massive, highly-trained service network ensures that expert help is always just a phone call away, anywhere in India.
                   </p>
                 </div>
                 <div className="relative z-10 shrink-0">
-                  <div className="w-12 h-12 rounded-full border-2 border-dashed border-accent/50 flex items-center justify-center text-accent group-hover:border-solid group-hover:bg-accent group-hover:text-gray-900 transition-all duration-500 cursor-pointer">
+                  <div className="w-12 h-12 rounded-full border-2 border-dashed border-accent/50 flex items-center justify-center text-accent group-hover:border-solid group-hover:bg-accent group-hover:text-gray-900 transition-all duration-500 cursor-pointer backdrop-blur-sm">
                     <ArrowRight className="w-6 h-6" />
                   </div>
                 </div>

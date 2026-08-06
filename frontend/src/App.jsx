@@ -10,6 +10,7 @@ import Catalogues from '@/pages/Catalogues';
 import Products from '@/pages/Products';
 import Industries from '@/pages/Industries';
 import Services from '@/pages/Services';
+import Clients from '@/pages/Clients';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/products" component={Products} />
       <Route path="/industries" component={Industries} />
       <Route path="/services" component={Services} />
+      <Route path="/clients" component={Clients} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
       
