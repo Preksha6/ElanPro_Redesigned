@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import logo from "@/assets/elanpro-logo.png";
-import { Facebook, Twitter, Linkedin, Instagram, Mail, Phone, MapPin } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Instagram, Mail, Phone, MapPin, Youtube } from "lucide-react";
 
 export function Footer() {
   return (
@@ -16,17 +16,20 @@ export function Footer() {
               India's leading commercial refrigeration brand. Delivering world-class cooling solutions for hospitality, retail, healthcare, and beyond.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors text-white">
+              <a href="https://www.facebook.com/@elanprogroup/" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors text-white">
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors text-white">
+              <a href="https://x.com/elanpro_pvt" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors text-white">
                 <Twitter className="w-5 h-5" />
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors text-white">
                 <Linkedin className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors text-white">
+              <a href="https://www.instagram.com/elanprogroup/" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors text-white">
                 <Instagram className="w-5 h-5" />
+              </a>
+              <a href="https://www.youtube.com/@elanprogroup" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary transition-colors text-white">
+                <Youtube className="w-5 h-5" />
               </a>
             </div>
           </div>
@@ -57,26 +60,36 @@ export function Footer() {
 
           {/* Contact Col */}
           <div>
-            <h4 className="text-white font-display font-semibold text-lg mb-6">Contact</h4>
-            <ul className="flex flex-col gap-4">
-              <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                <span className="text-sm">Elanpro Corporate Office, Sector 44, Gurugram, Haryana 122003, India</span>
+            <h4 className="text-white font-display font-semibold text-lg mb-6">Contact Us</h4>
+            <ul className="flex flex-col gap-5 text-sm">
+              <li>
+                <div className="font-bold text-gray-200 mb-1">Corporate Office</div>
+                <div className="text-gray-400 leading-snug">802 Tower 2, DLF Corporate Green, Sector 74A, Gurugram, India -122004</div>
               </li>
-              <li className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-primary shrink-0" />
-                <span className="text-sm">1800-XXX-XXXX</span>
+              <li>
+                <div className="font-bold text-gray-200 mb-1">Registered Office</div>
+                <div className="text-gray-400 leading-snug">C-95, KSSIDC Industrial Area, Devasandra Mahadevapura Post, Bangalore – 560048</div>
               </li>
-              <li className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-primary shrink-0" />
-                <span className="text-sm">sales@elanpro.net</span>
+              <li>
+                <div className="font-bold text-gray-200 mb-1">Customer Care & Landline</div>
+                <div className="text-gray-400 leading-snug">
+                  +91-888-230-2532, +91-9625852532<br/>
+                  +91-124-2663302, +91-124-2663303
+                </div>
+              </li>
+              <li>
+                <div className="font-bold text-gray-200 mb-1">Sales Enquiry</div>
+                <div className="text-gray-400 leading-snug">
+                  +91-9015106925<br/>
+                  <a href="mailto:enquiry@elanpro.net" className="hover:text-primary transition-colors">enquiry@elanpro.net</a>
+                </div>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="pt-8 border-t border-gray-800 text-sm text-gray-500 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p>&copy; {new Date().getFullYear()} Elanpro. All rights reserved.</p>
+          <p>Copyright &copy; elanpro.net {new Date().getFullYear()}. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-white transition-colors">Terms of Service</a>

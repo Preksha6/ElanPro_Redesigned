@@ -1,0 +1,6 @@
+# Excel Files
+*.xlsx
+*.xls
+*.csv
+node_modules
+

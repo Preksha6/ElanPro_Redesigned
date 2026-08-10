@@ -4,6 +4,9 @@ import { ArrowRight, ChevronRight, ShieldCheck, Shield, Zap, ThermometerSnowflak
 import { Layout } from "@/components/layout/Layout";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import InteractiveFeatureDeck from "@/components/InteractiveFeatureDeck";
+import CitiesNetwork from "@/components/CitiesNetwork";
 
 const BRAND_LOGOS = [
   { name: "Amul", url: "https://elanpro.net/wp-content/uploads/2025/06/amul.png" },
@@ -78,11 +81,27 @@ function StatCard({ stat, index }) {
   );
 }
 
+const HERO_BACKGROUNDS = [
+  '/premium_hero_bg.jpg',
+  '/premium_hero_bg_2.jpg',
+  '/premium_hero_bg_3.jpg'
+];
+
 export default function Home() {
+  const [activeSector, setActiveSector] = useState(null);
+  const [hoveredSector, setHoveredSector] = useState(null);
   const [stats, setStats] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
   const [industries, setIndustries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentBg, setCurrentBg] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBg(prev => (prev + 1) % HERO_BACKGROUNDS.length);
+    }, 6000); // 6 second crossfade
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -109,68 +128,228 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative min-h-[85vh] flex items-center justify-center pt-24 pb-32 overflow-hidden text-white text-center">
+      {/* Editorial Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center pt-16 md:pt-20 pb-20 lg:pb-32 overflow-hidden bg-white text-slate-900">
         
-        {/* Full-bleed Background Image */}
-        <div className="absolute inset-0">
-          <img 
-            src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2000"
-            alt="Commercial Kitchen Refrigeration"
-            className="w-full h-full object-cover"
+        {/* Atmospheric Background Images with Crossfade */}
+        {HERO_BACKGROUNDS.map((bg, index) => (
+          <motion.div 
+            key={bg}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: index === currentBg ? 0.5 : 0 }}
+            transition={{ duration: 2, ease: "easeInOut" }}
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+            style={{ backgroundImage: `url('${bg}')` }}
           />
-          {/* Brand-colored Overlay for Text Readability */}
-          <div className="absolute inset-0 bg-primary/80 mix-blend-multiply" />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/50 to-transparent" />
+        ))}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-white/30 via-transparent to-white pointer-events-none" />
+        
+        {/* Background Wordmark (Hidden on mobile to reduce clutter) */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.4 }}
+          transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0 z-0 hidden md:flex items-center justify-center overflow-hidden pointer-events-none select-none"
+        >
+          <span className="text-[10vw] font-black text-[#F7FAFF] leading-none tracking-tighter whitespace-nowrap">ELANPRO</span>
+        </motion.div>
+
+        <div className="container mx-auto px-4 relative z-10 w-full max-w-7xl">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-12 items-center">
+            
+            {/* Left Column: Typography */}
+            <div className="col-span-1 md:col-span-6 flex flex-col items-center md:items-start text-center md:text-left pt-6 md:pt-0 z-20">
+              
+              {/* Badge */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-[#1554A0]/20 text-[#08132B] font-bold text-[9px] md:text-xs uppercase tracking-widest shadow-sm mb-4 md:mb-8"
+              >
+                <span className="relative flex h-1.5 w-1.5 md:h-2 md:w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3BA7FF] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 md:h-2 md:w-2 bg-[#1554A0]"></span>
+                </span>
+                India's Commercial Cooling Leader
+              </motion.div>
+              
+              {/* Headline */}
+              <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl xl:text-6xl font-display font-black leading-[1.1] tracking-tight mb-4 md:mb-8">
+                <motion.span 
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 0.30, ease: [0.22, 1, 0.36, 1] }}
+                  className="block text-[#08132B]"
+                >
+                  Precision <span className="text-[#1554A0]">Cooling.</span>
+                </motion.span>
+                <motion.span 
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  className="block text-[#08132B] mt-1 md:mt-2"
+                >
+                  Engineered for <br className="hidden md:block" /> Global Standards.
+                </motion.span>
+              </h1>
+              
+              {/* Copy */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.60, ease: [0.22, 1, 0.36, 1] }}
+                className="max-w-[500px]"
+              >
+                <p className="text-lg md:text-xl text-[#08132B] font-semibold mb-3 md:mb-4 leading-snug">
+                  Engineered where temperature can't be left to chance.
+                </p>
+                <p className="text-sm md:text-base text-slate-600 mb-8 md:mb-10 leading-relaxed px-4 md:px-0">
+                  From luxury hospitality to critical medical storage, Elanpro delivers precision refrigeration built for demanding environments.
+                </p>
+              </motion.div>
+              
+              {/* Buttons */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.75, ease: [0.22, 1, 0.36, 1] }}
+                className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full sm:w-auto"
+              >
+                <Button asChild size="lg" className="group h-12 md:h-14 px-6 md:px-8 text-sm md:text-base font-bold bg-[#1554A0] text-white rounded-full hover:bg-[#08132B] hover:-translate-y-1 transition-all duration-300 shadow-[0_8px_20px_rgba(21,84,160,0.2)] hover:shadow-[0_15px_30px_rgba(21,84,160,0.4)]">
+                  <Link href="/products">
+                    Explore the Collection <ArrowRight className="ml-2 w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="h-12 md:h-14 px-6 md:px-8 text-sm md:text-base font-bold border-2 border-[#1554A0] text-[#08132B] bg-white rounded-full hover:bg-[#F2F7FF] hover:-translate-y-1 transition-all duration-300 shadow-sm hover:shadow-md">
+                  <Link href="/contact">
+                    Request a Quote
+                  </Link>
+                </Button>
+              </motion.div>
+            </div>
+
+            {/* Right Column: Product Presentation */}
+            <div className="hidden md:flex col-span-1 md:col-span-6 relative w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[750px] items-center justify-center lg:justify-end z-10 mt-8 md:mt-0">
+              
+              {/* Soft glow behind product */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1.5, delay: 1.05, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[350px] md:w-[300px] md:h-[400px] lg:w-[450px] lg:h-[700px] bg-[#087CF5]/10 blur-[80px] md:blur-[100px] rounded-full pointer-events-none"
+              />
+
+              {/* Main Product */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1.2, delay: 0.90, ease: [0.22, 1, 0.36, 1] }}
+                className="relative w-full h-full max-w-[220px] sm:max-w-[280px] md:max-w-md lg:max-w-[550px] z-20 flex items-center justify-center lg:-mr-12"
+              >
+                {/* Infinite Float Animation Wrapper */}
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                  className="w-full h-full flex items-center justify-center relative"
+                >
+                  <img 
+                    src="https://elanpro.net/wp-content/uploads/2025/07/EWG-130-D-7-Photoroom-1.png" 
+                    alt="Elanpro Commercial Refrigerator" 
+                    className="w-full h-full object-contain filter drop-shadow-[0_30px_50px_rgba(8,19,43,0.15)]"
+                  />
+                  
+                  {/* Technical Annotation 1 */}
+                  <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 1, delay: 1.15, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute top-[20%] -left-4 md:-left-20 hidden sm:flex items-center gap-3 pointer-events-none"
+                  >
+                    <div className="text-[10px] md:text-xs font-bold text-[#1554A0] tracking-[0.2em] whitespace-nowrap">
+                      PRECISION COOLING
+                    </div>
+                    <div className="w-12 md:w-24 h-[1px] bg-[#1554A0]/30" />
+                  </motion.div>
+
+                  {/* Technical Annotation 2 (Temperature) */}
+                  <motion.div 
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 1, delay: 1.15, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute top-[35%] -right-2 md:-right-8 lg:-right-16 hidden sm:flex items-center gap-2 pointer-events-none"
+                  >
+                    <div className="w-8 md:w-16 h-[1px] bg-[#1554A0]/40" />
+                    <div className="flex flex-col items-start gap-1 bg-white/60 backdrop-blur-md px-2 md:px-3 py-1.5 rounded-md border border-white/50 shadow-sm">
+                      <div className="flex items-center gap-2 text-[9px] md:text-xs font-bold text-[#08132B] tracking-wider whitespace-nowrap">
+                        −2°C <div className="w-8 md:w-16 h-[1px] bg-[#1554A0]/20 relative"><div className="absolute left-1/4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#087CF5]" /></div> +8°C
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Floating Information Card */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1, delay: 1.25, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute bottom-10 -right-4 md:-right-16 bg-white/95 backdrop-blur-xl border border-[#1554A0]/10 rounded-2xl p-5 shadow-[0_20px_40px_rgba(8,19,43,0.08)] max-w-[220px]"
+                  >
+                    <div className="text-[#1554A0] text-[10px] font-black tracking-[0.15em] mb-2">PRECISION ENGINEERING</div>
+                    <div className="text-[#08132B] text-xs font-semibold leading-relaxed">Built for demanding commercial environments</div>
+                  </motion.div>
+                  
+                </motion.div>
+              </motion.div>
+
+            </div>
+          </div>
+
+          {/* Bottom Proof Points */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 1.25, ease: [0.22, 1, 0.36, 1] }}
+            className="hidden lg:flex items-center gap-16 mt-12 mb-8"
+          >
+            {[
+              { num: "01", text: "PRECISION" },
+              { num: "02", text: "RELIABILITY" },
+              { num: "03", text: "GLOBAL STANDARDS" }
+            ].map((point, idx) => (
+              <div key={idx} className="flex items-center gap-4">
+                <span className="text-xl font-black text-[#1554A0]/30">{point.num}</span>
+                <span className="text-xs font-bold text-[#08132B] tracking-[0.2em]">{point.text}</span>
+              </div>
+            ))}
+          </motion.div>
+          
         </div>
 
-        <div className="container mx-auto px-4 md:px-8 relative z-10 flex flex-col items-center max-w-4xl">
-          
-          <FadeIn>
-            <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold text-sm mb-8">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-accent"></span>
-              </span>
-              India's Commercial Cooling Leader
-            </div>
-          </FadeIn>
-          
-          <FadeIn delay={0.1}>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-black text-white leading-[1.1] mb-6 tracking-tight">
-              Precision <span className="text-accent">Cooling</span> <br className="hidden md:block" />
-              for Global Standards.
-            </h1>
-          </FadeIn>
-          
-          <FadeIn delay={0.2}>
-            <p className="text-lg md:text-xl text-primary-100 mb-10 max-w-2xl mx-auto leading-relaxed font-light opacity-90">
-              From luxury hospitality to life-saving medical storage, Elanpro delivers world-class refrigeration engineered for absolute reliability.
-            </p>
-          </FadeIn>
-          
-          <FadeIn delay={0.3} className="flex flex-col sm:flex-row justify-center gap-5 w-full sm:w-auto">
-            <Button asChild size="lg" className="h-14 px-8 text-base font-bold bg-accent text-accent-dark hover:bg-accent-light rounded-sm transition-all shadow-[0_0_20px_rgba(0,102,255,0.3)] hover:shadow-[0_0_30px_rgba(0,102,255,0.5)] border-none">
-              <Link href="/products">
-                Explore Products <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="h-14 px-8 text-base font-bold border-2 border-white/30 text-white hover:bg-white hover:text-primary rounded-sm transition-all backdrop-blur-sm shadow-sm hover:shadow-md">
-              <Link href="/contact">
-                Request a Quote
-              </Link>
-            </Button>
-          </FadeIn>
-          
-        </div>
+        {/* Scroll Cue */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 1.5 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20"
+        >
+          <span className="text-[9px] font-black text-[#1554A0] tracking-[0.3em]">SCROLL TO EXPLORE</span>
+          <div className="w-[1px] h-12 bg-gradient-to-b from-[#1554A0]/0 via-[#1554A0]/30 to-[#1554A0]/0 relative overflow-hidden">
+             <motion.div 
+                animate={{ y: [-20, 48] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="w-full h-1/2 bg-[#1554A0]"
+             />
+          </div>
+        </motion.div>
+        
       </section>
 
       {/* Glassmorphism Stats Section */}
       <section className="relative z-20 -mt-16 pb-8">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="bg-white/70 backdrop-blur-xl border border-white shadow-2xl shadow-gray-200/50 rounded-[2.5rem] p-4 md:p-6 overflow-hidden relative">
+        <div className="w-full">
+          <div className="bg-white/70 backdrop-blur-xl border-y border-white shadow-2xl shadow-gray-200/50 py-6 md:py-8 overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary" />
-            <StaggerContainer className="grid grid-cols-3 gap-2 md:gap-8">
+            <StaggerContainer className="grid grid-cols-3 gap-2 md:gap-8 container mx-auto">
               {stats.map((stat, i) => (
                 <StatCard key={i} stat={stat} index={i} />
               ))}
@@ -284,49 +463,71 @@ export default function Home() {
           </div>
 
           <FadeIn delay={0.3}>
-            <div className="flex flex-col lg:flex-row h-[600px] sm:h-[700px] lg:h-[400px] gap-4 w-full">
-              {industries.map((ind, i) => (
-                <div 
-                  key={ind.id} 
-                  className="group relative flex-1 hover:flex-[2] lg:hover:flex-[3.5] transition-all duration-[800ms] ease-[cubic-bezier(0.25,1,0.5,1)] overflow-hidden rounded-3xl cursor-pointer shadow-2xl border border-white/5 bg-gray-900"
-                >
-                  <img 
-                    src={ind.image} 
-                    alt={ind.name} 
-                    className="absolute inset-0 w-full h-full object-cover object-center scale-[1.25] lg:group-hover:scale-[1.10] transition-transform duration-[1200ms] ease-out opacity-60 lg:group-hover:opacity-100" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-transparent lg:opacity-80 lg:group-hover:opacity-40 transition-opacity duration-700" />
-                  
-                  {/* Highlight Glow on Hover */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_70%)] pointer-events-none" />
+            <div className="flex flex-col lg:flex-row h-[650px] sm:h-[750px] lg:h-[400px] gap-4 w-full">
+              {industries.map((ind, i) => {
+                const isExpanded = activeSector === i || hoveredSector === i;
+                return (
+                  <div 
+                    key={ind.id} 
+                    onClick={() => {
+                      if (activeSector === i || hoveredSector === i) {
+                        setActiveSector(null);
+                        setHoveredSector(null);
+                      } else {
+                        setActiveSector(i);
+                      }
+                    }}
+                    onMouseEnter={() => setHoveredSector(i)}
+                    onMouseLeave={() => setHoveredSector(null)}
+                    className={`relative overflow-hidden rounded-3xl cursor-pointer shadow-2xl border border-white/5 bg-gray-900 transition-all duration-[600ms] ease-out will-change-[flex]
+                      ${isExpanded ? 'flex-[2.5] lg:flex-[3.5]' : 'flex-1'}`}
+                  >
+                    <img 
+                      src={ind.image} 
+                      alt={ind.name} 
+                      className={`absolute inset-0 w-full h-full object-cover object-center transition-transform duration-1000 ease-out will-change-transform
+                        ${isExpanded ? 'scale-[1.10] opacity-100' : 'scale-[1.25] opacity-60'}`} 
+                    />
+                    <div className={`absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-transparent transition-opacity duration-700
+                      ${isExpanded ? 'opacity-80 lg:opacity-40' : 'opacity-80'}`} />
+                    
+                    {/* Highlight Glow */}
+                    <div className={`absolute inset-0 transition-opacity duration-1000 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_70%)] pointer-events-none
+                      ${isExpanded ? 'opacity-100' : 'opacity-0'}`} />
 
-                  <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-8">
-                    <div className="transform translate-y-4 group-hover:translate-y-0 lg:translate-y-12 lg:group-hover:translate-y-0 transition-transform duration-[800ms] ease-out flex flex-col h-full justify-end">
-                      
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shrink-0 group-hover:bg-primary group-hover:border-primary transition-colors duration-500">
-                          <span className="font-bold text-lg">{i + 1}</span>
+                    <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-8">
+                      <div className={`transform transition-transform duration-700 ease-out flex flex-col h-full justify-end will-change-transform
+                        ${isExpanded ? 'translate-y-0' : 'translate-y-4 lg:translate-y-12'}`}>
+                        
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className={`w-12 h-12 rounded-full backdrop-blur-md border flex items-center justify-center text-white shrink-0 transition-colors duration-500
+                            ${isExpanded ? 'bg-primary border-primary' : 'bg-white/10 border-white/20'}`}>
+                            <span className="font-bold text-lg">{i + 1}</span>
+                          </div>
+                          <h3 className="text-2xl font-display font-bold text-white tracking-wide whitespace-nowrap drop-shadow-lg">
+                            {ind.name}
+                          </h3>
                         </div>
-                        <h3 className="text-2xl font-display font-bold text-white tracking-wide whitespace-nowrap drop-shadow-lg">
-                          {ind.name}
-                        </h3>
-                      </div>
 
-                      <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-[grid-template-rows] duration-[800ms] ease-[cubic-bezier(0.25,1,0.5,1)]">
-                        <div className="overflow-hidden">
-                          <p className="text-gray-300 text-sm md:text-base leading-relaxed max-w-xl mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100 -translate-y-2 group-hover:translate-y-0 lg:-translate-y-4">
-                            {ind.description}
-                          </p>
-                          <div className="flex items-center text-accent text-sm md:text-base font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-200 pb-2">
-                            {ind.stat} <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-2 transition-transform duration-500" />
+                        <div className={`grid transition-[grid-template-rows] duration-700 ease-out
+                          ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                          <div className="overflow-hidden">
+                            <p className={`text-gray-300 text-sm md:text-base leading-relaxed max-w-xl mb-4 transition-all duration-700
+                              ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 lg:-translate-y-4'}`}>
+                              {ind.description}
+                            </p>
+                            <div className={`flex items-center text-accent text-sm md:text-base font-bold transition-all duration-700 delay-100 pb-2
+                              ${isExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
+                              {ind.stat} <ArrowRight className="ml-2 w-4 h-4" />
+                            </div>
                           </div>
                         </div>
-                      </div>
 
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </FadeIn>
         </div>
@@ -357,99 +558,13 @@ export default function Home() {
             </FadeIn>
           </div>
 
-          {/* Bento Box Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-fr">
-            
-            {/* Card 1: Large Feature (Span 2x2) */}
-            <FadeIn delay={0.1} className="md:col-span-2 lg:col-span-2 row-span-2 group">
-              <div className="h-full p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-transform duration-500 hover:-translate-y-2 border border-white/10 group/card">
-                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1000&q=80" alt="Reliability" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-105" />
-                {/* Lighter overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/50 to-primary/10 group-hover/card:bg-primary/30 transition-colors duration-500" />
-                
-                <div className="absolute -right-20 -top-20 opacity-10 group-hover:opacity-20 group-hover:rotate-12 transition-all duration-700 pointer-events-none z-10">
-                  <Shield className="w-96 h-96 text-white" />
-                </div>
-                <div className="relative z-20 flex flex-col h-full text-white">
-                  <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20 group-hover:scale-110 transition-transform duration-500">
-                    <Shield className="w-6 h-6 text-accent" />
-                  </div>
-                  <h3 className="text-2xl md:text-3xl font-display font-bold mb-4 drop-shadow-md">Unmatched Reliability</h3>
-                  <p className="text-gray-200 text-base md:text-lg leading-relaxed max-w-lg mb-8 flex-grow drop-shadow-sm">
-                    Engineered for harsh environments, erratic power supplies, and peak hour stresses. We minimize your downtime so you can maximize your revenue.
-                  </p>
-                  <div className="inline-flex items-center text-white font-bold text-lg cursor-pointer group/link">
-                    Explore our technology <ArrowRight className="ml-2 w-5 h-5 group-hover/link:translate-x-2 transition-transform" />
-                  </div>
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* Card 2: Standard Square */}
-            <FadeIn delay={0.2} className="col-span-1 group">
-              <div className="h-full p-6 rounded-3xl shadow-lg hover:shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-2 group/card border border-white/10">
-                <img src="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&q=80" alt="Energy Efficient" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-105" />
-                {/* Lighter overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/50 to-primary/10 group-hover/card:bg-primary/30 transition-colors duration-500" />
-                
-                <div className="relative z-10 text-white flex flex-col h-full justify-end">
-                  <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20 group-hover:bg-accent group-hover:text-white group-hover:border-accent transition-colors duration-500">
-                    <Zap className="w-5 h-5 text-accent group-hover:text-white transition-colors" />
-                  </div>
-                  <h3 className="text-xl font-display font-bold mb-3 drop-shadow-md">Energy Efficient</h3>
-                  <p className="text-gray-200 leading-relaxed text-sm md:text-base drop-shadow-sm">
-                    Advanced compressors and thick-wall insulation technologies that drastically cut down your operational utility costs.
-                  </p>
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* Card 3: Standard Square */}
-            <FadeIn delay={0.3} className="col-span-1 group">
-              <div className="h-full p-6 rounded-3xl shadow-lg hover:shadow-2xl relative overflow-hidden transition-all duration-500 hover:-translate-y-2 group/card border border-white/10">
-                <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80" alt="Precision Cooling" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-105" />
-                {/* Lighter overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/50 to-primary/10 group-hover/card:bg-primary/30 transition-colors duration-500" />
-                
-                <div className="relative z-10 text-white flex flex-col h-full justify-end">
-                  <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20 group-hover:bg-accent group-hover:text-white group-hover:border-accent transition-colors duration-500">
-                    <ThermometerSnowflake className="w-5 h-5 text-accent group-hover:text-white transition-colors" />
-                  </div>
-                  <h3 className="text-xl font-display font-bold mb-3 drop-shadow-md">Precision Cooling</h3>
-                  <p className="text-gray-200 leading-relaxed text-sm md:text-base drop-shadow-sm">
-                    Microprocessor-controlled thermostats guarantee exact temperature maintenance without harmful fluctuations.
-                  </p>
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* Card 4: Wide Horizontal (Span 3) */}
-            <FadeIn delay={0.4} className="md:col-span-2 lg:col-span-3 group">
-              <div className="p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden transition-transform duration-500 hover:-translate-y-1 flex flex-col md:flex-row items-center gap-6 border border-white/10 group/card">
-                <img src="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?w=1200&q=80" alt="24/7 Support" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-105" />
-                {/* Lighter overlay */}
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/60 to-slate-900/10 group-hover/card:bg-slate-900/30 transition-colors duration-500" />
-                
-                <div className="w-14 h-14 shrink-0 rounded-full bg-white/10 border border-white/20 backdrop-blur flex items-center justify-center relative z-10">
-                  <Clock className="w-7 h-7 text-accent group-hover:animate-pulse" />
-                </div>
-                <div className="relative z-10 text-center md:text-left flex-grow text-white">
-                  <h3 className="text-2xl font-display font-bold mb-2 drop-shadow-md">24/7 Pan-India Support</h3>
-                  <p className="text-gray-300 text-lg drop-shadow-sm">
-                    Our massive, highly-trained service network ensures that expert help is always just a phone call away, anywhere in India.
-                  </p>
-                </div>
-                <div className="relative z-10 shrink-0">
-                  <div className="w-12 h-12 rounded-full border-2 border-dashed border-accent/50 flex items-center justify-center text-accent group-hover:border-solid group-hover:bg-accent group-hover:text-gray-900 transition-all duration-500 cursor-pointer backdrop-blur-sm">
-                    <ArrowRight className="w-6 h-6" />
-                  </div>
-                </div>
-              </div>
-            </FadeIn>
-
-          </div>
+          {/* Stacked Feature Deck */}
+          <InteractiveFeatureDeck />
         </div>
       </section>
+
+      {/* Cities Network Map Section */}
+      <CitiesNetwork />
 
       {/* CTA Band */}
       <section className="py-16 relative overflow-hidden">
@@ -459,7 +574,7 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-6 relative z-10 text-center">
           <FadeIn>
             <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-6">Ready to upgrade your cooling?</h2>
-            <p className="text-primary-light text-base md:text-lg mb-8 max-w-2xl mx-auto">
+            <p className="text-white/90 text-base md:text-lg mb-8 max-w-2xl mx-auto">
               Consult with our experts today to design the perfect refrigeration setup for your specific needs.
             </p>
             <Button asChild size="lg" className="h-12 px-8 bg-accent text-white hover:bg-accent/90 text-base font-bold rounded-full shadow-[0_0_40px_rgba(0,102,255,0.4)] transition-all">

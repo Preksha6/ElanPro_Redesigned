@@ -4,6 +4,7 @@ import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 import { supabase } from "@/lib/supabase";
 import { Truck, Headphones, Wrench, ShieldCheck, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const iconMap = {
   truck: <Truck className="w-8 h-8 text-accent" />,
@@ -14,6 +15,7 @@ const iconMap = {
 export default function Services() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchData() {
@@ -123,7 +125,18 @@ export default function Services() {
            <FadeIn>
              <h2 className="text-3xl font-display font-bold text-gray-900 mb-6">Need Maintenance?</h2>
              <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">Sign up for an Annual Maintenance Contract (AMC) today to keep your equipment running at peak efficiency year-round.</p>
-             <Button size="lg" className="rounded-full h-14 px-8 text-lg font-bold">Download AMC Brochure</Button>
+             <Button 
+               size="lg" 
+               className="rounded-full h-14 px-8 text-lg font-bold"
+               onClick={() => {
+                 toast({
+                   title: "Downloading Brochure",
+                   description: "The Annual Maintenance Contract brochure is being downloaded.",
+                 });
+               }}
+             >
+               Download AMC Brochure
+             </Button>
            </FadeIn>
          </div>
       </section>

@@ -8,7 +8,8 @@ import {
   Building2, 
   LogOut,
   Menu,
-  X
+  X,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -54,6 +55,7 @@ export default function AdminLayout({ children }) {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { name: 'Inquiries', href: '/admin/messages', icon: MessageSquare },
     { name: 'Categories', href: '/admin/categories', icon: Tags },
     { name: 'Products', href: '/admin/products', icon: Package },
     { name: 'Industries', href: '/admin/industries', icon: Building2 },

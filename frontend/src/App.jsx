@@ -2,7 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/NotFound';
-import { Route, Switch, Router as WouterRouter } from 'wouter';
+import { useEffect } from 'react';
+import { Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 
 import Home from '@/pages/Home';
 import Categories from '@/pages/Categories';
@@ -20,8 +21,19 @@ import Dashboard from '@/pages/admin/Dashboard';
 import ManageCategories from '@/pages/admin/ManageCategories';
 import ManageProducts from '@/pages/admin/ManageProducts';
 import ManageIndustries from '@/pages/admin/ManageIndustries';
+import ManageMessages from '@/pages/admin/ManageMessages';
 
 const queryClient = new QueryClient();
+
+function ScrollToTop() {
+  const [location] = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+  
+  return null;
+}
 
 function Router() {
   return (
@@ -58,6 +70,11 @@ function Router() {
           <ManageIndustries />
         </AdminLayout>
       </Route>
+      <Route path="/admin/messages">
+        <AdminLayout>
+          <ManageMessages />
+        </AdminLayout>
+      </Route>
       <Route component={NotFound} />
     </Switch>);
 
@@ -68,6 +85,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+          <ScrollToTop />
           <Router />
         </WouterRouter>
         <Toaster />
