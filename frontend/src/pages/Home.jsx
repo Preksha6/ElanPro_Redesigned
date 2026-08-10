@@ -376,12 +376,12 @@ export default function Home() {
           
           <div className="flex w-max shrink-0 animate-marquee items-center transition-all duration-700">
             {BRAND_LOGOS.map((logo, i) => (
-              <img key={i} src={logo.url} alt={logo.name} className="h-10 md:h-14 object-contain mx-10 md:mx-14 drop-shadow-sm hover:scale-125 transition-transform duration-300" />
+              <img key={i} src={logo.url} alt={logo.name} className="h-16 md:h-24 lg:h-28 object-contain mx-12 md:mx-20 drop-shadow-sm hover:scale-110 transition-transform duration-300" />
             ))}
           </div>
           <div className="flex w-max shrink-0 animate-marquee items-center transition-all duration-700" aria-hidden="true">
             {BRAND_LOGOS.map((logo, i) => (
-              <img key={`dup-${i}`} src={logo.url} alt={logo.name} className="h-10 md:h-14 object-contain mx-10 md:mx-14 drop-shadow-sm hover:scale-125 transition-transform duration-300" />
+              <img key={`dup-${i}`} src={logo.url} alt={logo.name} className="h-16 md:h-24 lg:h-28 object-contain mx-12 md:mx-20 drop-shadow-sm hover:scale-110 transition-transform duration-300" />
             ))}
           </div>
         </div>
