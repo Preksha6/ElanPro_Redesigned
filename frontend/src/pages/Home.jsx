@@ -129,7 +129,7 @@ export default function Home() {
   return (
     <Layout>
       {/* Editorial Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16 md:pt-20 pb-20 lg:pb-32 overflow-hidden bg-white text-slate-900">
+      <section className="relative min-h-screen flex items-center justify-center pt-1 md:pt-20 pb-20 lg:pb-32 overflow-hidden bg-white text-slate-900">
         
         {/* Atmospheric Background Images with Crossfade */}
         {HERO_BACKGROUNDS.map((bg, index) => (
@@ -424,7 +424,7 @@ export default function Home() {
                     <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{product.category}</div>
                     <h3 className="text-xl font-display font-bold text-gray-900 mb-3">{product.name}</h3>
                     <p className="text-gray-600 line-clamp-2 mb-6">{product.description}</p>
-                    <Button asChild variant="outline" className="w-full rounded-full border-gray-200 hover:border-primary hover:text-primary transition-colors">
+                    <Button asChild variant="outline" className="w-full rounded-full border-gray-200 hover:border-primary hover:text-white hover:bg-blue-950 transition-colors">
                       <Link href={`/products`}>
                         View Details
                       </Link>

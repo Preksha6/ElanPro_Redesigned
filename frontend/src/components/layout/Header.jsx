@@ -8,6 +8,15 @@ export function Header() {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [isScrolled, setIsScrolled] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -33,7 +42,11 @@ export function Header() {
 
   return (
     <header className="fixed top-0 w-full z-50">
-      <div className="w-full bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 md:px-12 py-3 flex items-center justify-between shadow-sm">
+      <div className={`w-full px-6 md:px-12 py-3 flex items-center justify-between transition-all duration-300 ${
+        isScrolled 
+          ? "bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm" 
+          : "bg-transparent border-b border-transparent"
+      }`}>
         
         {/* Logo */}
           <Link href="/">
