@@ -77,10 +77,9 @@
     "zod": "^3.25.76"
   },
   "dependencies": {
-    "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "@supabase/supabase-js": "^2.112.1",
-    "@svg-maps/india": "^2.0.0",
-    "three": "^0.185.1"
+    "leaflet": "^1.9.4",
+    "react-leaflet": "^5.0.0"
   }
 }

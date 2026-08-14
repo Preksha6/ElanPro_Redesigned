@@ -40,6 +40,9 @@ export function Header() {
     { name: "About", path: "/about" },
   ];
 
+  const darkNavPages = ["/", "/clients", "/industries", "/services", "/about"];
+  const useWhiteText = !isScrolled && darkNavPages.includes(location);
+
   return (
     <header className="fixed top-0 w-full z-50">
       <div className={`w-full px-6 md:px-12 py-3 flex items-center justify-between transition-all duration-300 ${
@@ -62,7 +65,9 @@ export function Header() {
                 key={link.path}
                 href={link.path}
                 className={`text-sm font-semibold tracking-wide transition-colors ${
-                  location === link.path ? "text-accent" : "text-primary hover:text-accent"
+                  location === link.path 
+                    ? "text-accent" 
+                    : useWhiteText ? "text-white/90 hover:text-white" : "text-primary hover:text-accent"
                 }`}
               >
                 {link.name}
@@ -95,7 +100,7 @@ export function Header() {
 
           {/* Mobile Toggle */}
           <button
-            className="lg:hidden p-2 text-primary"
+            className={`lg:hidden p-2 transition-colors ${useWhiteText ? 'text-white' : 'text-primary'}`}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

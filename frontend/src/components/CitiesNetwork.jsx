@@ -1,22 +1,38 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { motion, useInView, useMotionValue, useTransform, animate } from 'framer-motion';
-import mapData from '@svg-maps/india';
+import { motion, useInView, useMotionValue, useTransform, animate, AnimatePresence } from 'framer-motion';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
+// Fix for default Leaflet marker icon in React
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Real lat/lng coordinates for cities
 const CITIES = [
-  { id: 'gurugram', name: 'Gurugram', region: 'North India', x: 186, y: 207, isOrigin: true },
-  { id: 'delhi', name: 'Delhi', region: 'North India', x: 189, y: 203 },
-  { id: 'chandigarh', name: 'Chandigarh', region: 'North India', x: 180, y: 152 },
-  { id: 'dehradun', name: 'Dehradun', region: 'North India', x: 207, y: 162 },
-  { id: 'jaipur', name: 'Jaipur', region: 'West India', x: 160, y: 244 },
-  { id: 'lucknow', name: 'Lucknow', region: 'North India', x: 268, y: 246 },
-  { id: 'kolkata', name: 'Kolkata', region: 'East India', x: 423, y: 348 },
-  { id: 'ahmedabad', name: 'Ahmedabad', region: 'West India', x: 92, y: 338 },
-  { id: 'bhopal', name: 'Bhopal', region: 'Central India', x: 194, y: 332 },
-  { id: 'mumbai', name: 'Mumbai', region: 'West India', x: 99, y: 432 },
-  { id: 'hyderabad', name: 'Hyderabad', region: 'South India', x: 216, y: 473 },
-  { id: 'bengaluru', name: 'Bengaluru', region: 'South India', x: 197, y: 579 },
-  { id: 'chennai', name: 'Chennai', region: 'South India', x: 253, y: 576 },
-  { id: 'kochi', name: 'Kochi', region: 'South India', x: 170, y: 652 },
+  { id: 'gurugram', name: 'Gurugram', region: 'North India', lat: 28.4595, lng: 77.0266, isOrigin: true },
+  { id: 'delhi', name: 'Delhi', region: 'North India', lat: 28.6139, lng: 77.2090 },
+  { id: 'chandigarh', name: 'Chandigarh', region: 'North India', lat: 30.7333, lng: 76.7794 },
+  { id: 'dehradun', name: 'Dehradun', region: 'North India', lat: 30.3165, lng: 78.0322 },
+  { id: 'jaipur', name: 'Jaipur', region: 'West India', lat: 26.9124, lng: 75.7873 },
+  { id: 'lucknow', name: 'Lucknow', region: 'North India', lat: 26.8467, lng: 80.9462 },
+  { id: 'kolkata', name: 'Kolkata', region: 'East India', lat: 22.5726, lng: 88.3639 },
+  { id: 'ahmedabad', name: 'Ahmedabad', region: 'West India', lat: 23.0225, lng: 72.5714 },
+  { id: 'bhopal', name: 'Bhopal', region: 'Central India', lat: 23.2599, lng: 77.4126 },
+  { id: 'mumbai', name: 'Mumbai', region: 'West India', lat: 19.0760, lng: 72.8777 },
+  { id: 'hyderabad', name: 'Hyderabad', region: 'South India', lat: 17.3850, lng: 78.4867 },
+  { id: 'bengaluru', name: 'Bengaluru', region: 'South India', lat: 12.9716, lng: 77.5946 },
+  { id: 'chennai', name: 'Chennai', region: 'South India', lat: 13.0827, lng: 80.2707 },
+  { id: 'kochi', name: 'Kochi', region: 'South India', lat: 9.9312, lng: 76.2673 },
 ];
 
 const CONNECTIONS = [
@@ -52,6 +68,12 @@ export default function CitiesNetwork() {
   const isInView = useInView(containerRef, { once: true, margin: "-20%" });
   const [hoveredCity, setHoveredCity] = useState(null);
 
+  // Helper to find city coordinates for polylines
+  const getCityCoords = (cityId) => {
+    const city = CITIES.find(c => c.id === cityId);
+    return city ? [city.lat, city.lng] : [0, 0];
+  };
+
   return (
     <section 
       ref={containerRef}
@@ -84,7 +106,6 @@ export default function CitiesNetwork() {
               150+ CITIES.<br />ONE CONNECTED NETWORK.
             </motion.h2>
             
-            {/* Accent Line */}
             <motion.div 
               initial={{ scaleX: 0 }}
               animate={isInView ? { scaleX: 1 } : {}}
@@ -128,148 +149,64 @@ export default function CitiesNetwork() {
           </motion.div>
         </div>
 
-        {/* RIGHT COLUMN: Interactive Map */}
-        <div className="lg:col-span-7 relative flex justify-center items-center w-full min-h-[500px] lg:min-h-[700px]">
-          
-          <div className="relative w-full max-w-[600px] aspect-[612/696]">
-            <svg
-              viewBox={mapData.viewBox}
-              className="w-full h-full drop-shadow-2xl"
-              style={{ filter: "drop-shadow(0 20px 40px rgba(15, 23, 42, 0.05))" }}
-            >
-              
-              {/* 1. Map Outline Rendering */}
-              <g className="map-states">
-                {mapData.locations.map((location, i) => (
-                  <motion.path
-                    key={location.id}
-                    d={location.path}
-                    fill="#F1F5F9"
-                    stroke="#CBD5E1"
-                    strokeWidth="1.5"
-                    initial={{ pathLength: 0, opacity: 0, fill: "#FFFFFF" }}
-                    animate={isInView ? { 
-                      pathLength: 1, 
-                      opacity: 1,
-                      fill: "#F1F5F9" 
-                    } : {}}
-                    transition={{ 
-                      pathLength: { duration: 1.5, ease: "easeInOut" },
-                      opacity: { duration: 0.5 },
-                      fill: { duration: 1, delay: 1 }
-                    }}
+        {/* RIGHT COLUMN: Interactive OpenStreetMap */}
+        <div className="lg:col-span-7 relative flex items-center justify-center h-[500px] lg:h-[600px] w-full">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 1, delay: 0.5 }}
+            className="w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-slate-200 relative z-20 bg-slate-50"
+          >
+            {isInView && (
+              <MapContainer 
+                center={[22.5937, 78.9629]} 
+                zoom={4} 
+                scrollWheelZoom={false}
+                className="w-full h-full"
+                zoomControl={true}
+              >
+                {/* Clean, light OpenStreetMap theme */}
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                />
+
+                {/* Draw connections (polylines) */}
+                {CONNECTIONS.map((conn, i) => (
+                  <Polyline 
+                    key={i}
+                    positions={[getCityCoords(conn.from), getCityCoords(conn.to)]}
+                    color="#2563eb"
+                    weight={2}
+                    opacity={0.5}
+                    dashArray="5, 10"
                   />
                 ))}
-              </g>
 
-              {/* 2. Network Connections */}
-              <g className="network-connections">
-                {CONNECTIONS.map((conn, i) => {
-                  const fromCity = CITIES.find(c => c.id === conn.from);
-                  const toCity = CITIES.find(c => c.id === conn.to);
-                  if (!fromCity || !toCity) return null;
-
-                  return (
-                    <motion.line
-                      key={`${conn.from}-${conn.to}`}
-                      x1={fromCity.x}
-                      y1={fromCity.y}
-                      x2={toCity.x}
-                      y2={toCity.y}
-                      stroke="#3B82F6"
-                      strokeWidth="1.5"
-                      strokeDasharray="4 4"
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      animate={isInView ? { pathLength: 1, opacity: 0.3 } : {}}
-                      transition={{ 
-                        duration: 1.5, 
-                        delay: 1.5 + (i * 0.1), // Stagger lines after map draws
-                        ease: "easeOut"
-                      }}
-                    />
-                  );
-                })}
-              </g>
-
-              {/* 3. City Markers */}
-              {CITIES.map((city, i) => (
-                <g 
-                  key={city.id} 
-                  className="city-marker cursor-pointer"
-                  onMouseEnter={() => setHoveredCity(city)}
-                  onMouseLeave={() => setHoveredCity(null)}
-                  onClick={() => setHoveredCity(city)}
-                >
-                  {/* Subtle Pulse for Origin */}
-                  {city.isOrigin && (
-                    <motion.circle
-                      cx={city.x}
-                      cy={city.y}
-                      r="12"
-                      fill="rgba(37, 99, 235, 0.2)"
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={isInView ? { 
-                        scale: [1, 2.5, 1], 
-                        opacity: [0.5, 0, 0.5] 
-                      } : {}}
-                      transition={{ 
-                        duration: 3, 
-                        delay: 1.5,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    />
-                  )}
-
-                  {/* Marker Dot */}
-                  <motion.circle
-                    cx={city.x}
-                    cy={city.y}
-                    r={city.isOrigin ? "6" : "4.5"}
-                    fill="#1E40AF"
-                    stroke="#FFFFFF"
-                    strokeWidth="2"
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={isInView ? { scale: 1, opacity: 1 } : {}}
-                    whileHover={{ scale: 1.5 }}
-                    transition={{ 
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 20,
-                      delay: city.isOrigin ? 1.2 : 2.5 + (i * 0.05) // Origin first, others stagger later
+                {/* Draw cities (markers) */}
+                {CITIES.map((city) => (
+                  <Marker 
+                    key={city.id} 
+                    position={[city.lat, city.lng]}
+                    eventHandlers={{
+                      mouseover: () => setHoveredCity(city.id),
+                      mouseout: () => setHoveredCity(null),
                     }}
-                  />
-                </g>
-              ))}
-            </svg>
-
-            {/* HTML-based Tooltips for easy z-indexing over SVG */}
-            {CITIES.map((city) => (
-              <motion.div
-                key={`tooltip-${city.id}`}
-                initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                animate={{ 
-                  opacity: hoveredCity?.id === city.id ? 1 : 0,
-                  y: hoveredCity?.id === city.id ? 0 : 10,
-                  scale: hoveredCity?.id === city.id ? 1 : 0.9,
-                  pointerEvents: hoveredCity?.id === city.id ? 'auto' : 'none'
-                }}
-                transition={{ duration: 0.2 }}
-                className="absolute z-50 bg-slate-900 text-white py-2 px-4 rounded-xl shadow-xl border border-slate-700/50 backdrop-blur-md"
-                // Using percentage coordinates mapping viewBox to absolute
-                style={{ 
-                  left: `${(city.x / 612) * 100}%`, 
-                  top: `${(city.y / 696) * 100}%`,
-                  transform: 'translate(-50%, -120%)'
-                }}
-              >
-                <div className="font-bold text-sm whitespace-nowrap">{city.name}</div>
-                <div className="text-xs text-blue-300 font-medium whitespace-nowrap">{city.region}</div>
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45 border-r border-b border-slate-700/50" />
-              </motion.div>
-            ))}
-
-          </div>
+                  >
+                    <Popup className="font-sans">
+                      <div className="text-sm">
+                        <strong className="text-base text-slate-900">{city.name}</strong><br />
+                        <span className="text-slate-500">{city.region}</span>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
+              </MapContainer>
+            )}
+          </motion.div>
+          
+          {/* Decorative Elements around the map */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,_rgba(37,99,235,0.05)_0%,_transparent_70%)] pointer-events-none z-0" />
         </div>
       </div>
     </section>
