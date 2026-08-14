@@ -97,7 +97,18 @@ export default function Home() {
         
         if (statsRes.data) setStats(statsRes.data);
         if (productsRes.data) setTopProducts(productsRes.data);
-        if (industriesRes.data) setIndustries(industriesRes.data);
+        if (industriesRes.data) {
+          // Fallback override for missing/broken images in database
+          const overrideImages = {
+            'ind-1': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1920', // Hospitality
+            'ind-4': 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1920'  // Healthcare
+          };
+          const fixedIndustries = industriesRes.data.map(ind => ({
+            ...ind,
+            image: overrideImages[ind.id] || ind.image
+          }));
+          setIndustries(fixedIndustries);
+        }
       } catch (error) {
         console.error("Error fetching home data:", error);
       } finally {
