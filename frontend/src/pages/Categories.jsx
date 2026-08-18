@@ -1,199 +1,240 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/layout/Layout";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/motion";
-import { Search, Filter, Box, X, ChevronRight, ArrowRight, ArrowLeft } from "lucide-react";
+import { 
+  LayoutGrid, 
+  ChefHat, 
+  ShoppingCart, 
+  Box, 
+  Wine, 
+  ShieldAlert, 
+  Layers, 
+  Warehouse, 
+  Cake, 
+  Snowflake, 
+  Sparkles, 
+  Store, 
+  Droplets, 
+  RotateCcw, 
+  ChevronDown, 
+  ChevronRight, 
+  ArrowRight, 
+  ArrowLeft, 
+  Search, 
+  X, 
+  Check, 
+  SlidersHorizontal, 
+  ShieldCheck, 
+  Leaf, 
+  Headphones, 
+  Download,
+  CheckCircle2
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import heroProductsImg from "@/assets/hero-products-lineup.jpg";
 
-// Fallback high-quality images mapped by category name.
-// These can easily be replaced by Elanpro's proprietary photography from the DB later.
-const categoryImages = {
-  "Commercial Refrigeration": "https://images.unsplash.com/photo-1588722421062-8f9f6e695d66?q=80&w=1200&auto=format&fit=crop",
-  "Food Service & Beverage Equipment": "https://images.unsplash.com/photo-1556910103-1c02745a805f?q=80&w=1200&auto=format&fit=crop",
-  "Specialized Solutions": "https://images.unsplash.com/photo-1579207436696-2be5d8dcaf99?q=80&w=1200&auto=format&fit=crop"
-};
-
-const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=1200&auto=format&fit=crop";
-
-// Helper component for animated product backgrounds
-const CategoryBackgroundSlideshow = ({ categoryName, products, fallbackImage }) => {
-  const categoryProducts = products.filter(p => p.category === categoryName);
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    if (categoryProducts.length <= 1) return;
-    
-    // Cycle every 3-4 seconds, randomized slightly to avoid perfect synchronization across all cards
-    const intervalTime = 3000 + Math.random() * 2000; 
-    
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % categoryProducts.length);
-    }, intervalTime);
-    return () => clearInterval(interval);
-  }, [categoryProducts.length]);
-
-  if (categoryProducts.length === 0) {
-    return (
-      <img 
-        src={fallbackImage} 
-        alt={categoryName} 
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-    );
+// Categories metadata directly extracted and enriched from elanpro.net/our-products/
+const CATEGORY_DEFINITIONS = [
+  {
+    id: "professional-kitchen",
+    name: "Professional Kitchen",
+    icon: ChefHat,
+    image: "https://elanpro.net/wp-content/uploads/2025/06/PROFESSIONAL-KITCHEN.jpg",
+    description: "High-performance refrigeration solutions for commercial kitchens and food service.",
+    types: ["Reach-In", "Under-Counter", "Banquet Trolley", "Prep Table", "Blast Freezer", "Fish File Refrigerator"],
+    tempRange: "Chiller (+2°C to +8°C)",
+    installation: "Plug-In / Self-Contained",
+    matchKeywords: ["kitchen", "reach in", "under counter", "banquet", "salad", "sushi", "fish file", "blast freezer", "prep table", "cooling well", "frost top"]
+  },
+  {
+    id: "retail-refrigeration",
+    name: "Retail Refrigeration",
+    icon: ShoppingCart,
+    image: "https://elanpro.net/wp-content/uploads/2025/07/Retail_-min.jpg",
+    description: "Reliable and energy-efficient cooling for retail, supermarkets and convenience stores.",
+    types: ["Display / Visi-Cooler", "Chest Freezer", "Multideck Chiller", "Island Freezer", "Upright Showcase"],
+    tempRange: "Chiller (+2°C to +8°C)",
+    installation: "Plug-In / Self-Contained",
+    matchKeywords: ["retail", "visi-cooler", "chest freezer", "multideck", "showcase", "free standing", "cooler & freezer"]
+  },
+  {
+    id: "vending-solutions",
+    name: "Vending Solutions",
+    icon: Box,
+    image: "https://elanpro.net/wp-content/uploads/2025/07/Vending-machine_-min.jpg",
+    description: "Smart, compact and secure cooling solutions for unattended retail and automation.",
+    types: ["Smart Vending Machine", "Automated Locker", "Combo Dispenser"],
+    tempRange: "Dual Temp (+1°C to +15°C)",
+    installation: "Plug-In / Self-Contained",
+    matchKeywords: ["vending", "automation", "smart locker", "dispenser"]
+  },
+  {
+    id: "beverage-cooling",
+    name: "Beverage Cooling",
+    icon: Wine,
+    image: "https://elanpro.net/wp-content/uploads/2025/06/BEVERAGE.jpg",
+    description: "Maintain perfect chill and presentation for all your beverages, juices and drinks.",
+    types: ["Back-Bar Chiller", "Wine Cellar", "Bottle Cooler", "Visi-Cooler"],
+    tempRange: "Chiller (+2°C to +8°C)",
+    installation: "Plug-In / Self-Contained",
+    matchKeywords: ["beverage", "wine", "back-bar", "bottle", "drink", "juice"]
+  },
+  {
+    id: "pharma-medical",
+    name: "Pharma & Medical",
+    icon: ShieldAlert,
+    image: "https://elanpro.net/wp-content/uploads/2025/07/Pharma-800-x-800.jpg",
+    description: "Precision cooling for medicines, vaccines and critical medical applications.",
+    types: ["Laboratory Refrigerator", "Laboratory Freezer", "Portable Vaccine Freezer", "Life Science Cooler"],
+    tempRange: "Ultra-Low (-40°C to -86°C)",
+    installation: "Freestanding Mobile",
+    matchKeywords: ["pharma", "medical", "laboratory", "vaccine", "life science", "blood bank"]
+  },
+  {
+    id: "bar-refrigeration",
+    name: "Bar Refrigeration",
+    icon: Layers,
+    image: "https://elanpro.net/wp-content/uploads/2025/06/BAR-REFRIGERATION.jpg",
+    description: "Commercial back-bar bottle coolers, kegerators and draft beer dispensing systems.",
+    types: ["Back-Bar Chiller", "Beer Tower", "Direct Draw Dispenser", "Glass Froster"],
+    tempRange: "Chiller (+2°C to +8°C)",
+    installation: "Under-Counter",
+    matchKeywords: ["bar", "beer", "draft", "kegerator", "froster", "cocktail"]
+  },
+  {
+    id: "cold-room",
+    name: "Cold Room Solutions",
+    icon: Warehouse,
+    image: "https://elanpro.net/wp-content/uploads/2025/06/cold-room.jpg",
+    description: "Modular walk-in cold rooms and condensing units for commercial and industrial scale storage.",
+    types: ["Modular Cold Room", "Condensing Units", "Monoblock Chiller", "Evaporator Unit"],
+    tempRange: "Deep Freezer (-18°C to -22°C)",
+    installation: "Remote Condenser",
+    matchKeywords: ["cold room", "condensing", "monoblock", "walk in", "modular cold"]
+  },
+  {
+    id: "confectionery-showcase",
+    name: "Confectionery Showcase",
+    icon: Cake,
+    image: "https://elanpro.net/wp-content/uploads/2025/06/CONFECTIONERY-SHOWCASE.jpg",
+    description: "Elegant glass display showcases with humidity and temperature control for pastries and cakes.",
+    types: ["Curved Glass Showcase", "Flat Glass Showcase", "Countertop Pastry Case"],
+    tempRange: "Chiller (+2°C to +8°C)",
+    installation: "Plug-In / Self-Contained",
+    matchKeywords: ["confectionery", "pastry", "cake", "bakery", "showcase", "dessert"]
+  },
+  {
+    id: "ice-machine",
+    name: "Ice Machine & Flakers",
+    icon: Snowflake,
+    image: "https://elanpro.net/wp-content/uploads/2025/06/ice.jpg",
+    description: "High-yield commercial ice makers producing gourmet cubes, bullet ice, and flakers.",
+    types: ["Modular Ice Machine", "Self-Contained Ice Maker", "Ice Flaker", "Ice Dispenser"],
+    tempRange: "Deep Freezer (-18°C to -22°C)",
+    installation: "Freestanding Mobile",
+    matchKeywords: ["ice", "flaker", "ice cube", "ice machine", "bullet ice"]
+  },
+  {
+    id: "mini-bar",
+    name: "Mini Bar & Mini Fridge",
+    icon: Sparkles,
+    image: "https://elanpro.net/wp-content/uploads/2025/06/Mini-Bar-2.jpg",
+    description: "Whisper-quiet absorption and thermoelectric minibars for hospitality and luxury guest rooms.",
+    types: ["Absorption Minibar", "Glass Door Mini Fridge", "Solid Door Minibar"],
+    tempRange: "Dual Temp (+1°C to +15°C)",
+    installation: "Built-In / Under-Counter",
+    matchKeywords: ["mini bar", "minibar", "mini fridge", "hotel", "absorption"]
+  },
+  {
+    id: "supermarket",
+    name: "Supermarket Systems",
+    icon: Store,
+    image: "https://elanpro.net/wp-content/uploads/2025/07/Super-market_-min.jpg",
+    description: "High-capacity multideck chillers, island freezers and remote refrigeration cabinets.",
+    types: ["Plug-In Multideck", "Remote Multideck", "Chiller Cabinet", "Freezer Cabinet"],
+    tempRange: "Chiller (+2°C to +8°C)",
+    installation: "Remote Condenser",
+    matchKeywords: ["supermarket", "super market", "multideck", "cabinet 2/3 doors", "slim cabinet"]
+  },
+  {
+    id: "water-solutions",
+    name: "Water Coolers & Dispensers",
+    icon: Droplets,
+    image: "https://elanpro.net/wp-content/uploads/2025/07/water-cooler_-min.jpg",
+    description: "Heavy-duty commercial stainless steel water coolers and touchless dispensers.",
+    types: ["Storage Water Cooler", "POU Water Dispenser", "Milk Cooler"],
+    tempRange: "Dual Temp (+1°C to +15°C)",
+    installation: "Freestanding Mobile",
+    matchKeywords: ["water cooler", "water dispenser", "milk cooler", "dispenser"]
   }
+];
 
-  return (
-    <div className="absolute inset-0 w-full h-full">
-      <AnimatePresence initial={false}>
-        <motion.img
-          key={currentIndex}
-          src={categoryProducts[currentIndex].image}
-          alt={categoryProducts[currentIndex].name}
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: "easeInOut" }}
-          className="absolute inset-0 w-full h-full object-contain p-8 mix-blend-multiply bg-slate-50"
-        />
-      </AnimatePresence>
-    </div>
-  );
-};
+const FILTER_PRODUCT_TYPES = [
+  "Reach-In",
+  "Under-Counter",
+  "Display & Showcase",
+  "Chest Freezers",
+  "Visi-Coolers",
+  "Blast Freezers",
+  "Dispensing Systems",
+  "Laboratory & Medical",
+  "Cold Room & Condensing"
+];
 
-// DeckScroller component for smooth auto-scrolling with manual override
-const DeckScroller = ({ categories, renderCard }) => {
-  const scrollRef = React.useRef(null);
-  const [isHovered, setIsHovered] = React.useState(false);
-  const [isTouching, setIsTouching] = React.useState(false);
-  const accumulateRef = React.useRef(0);
+const FILTER_TEMPERATURES = [
+  "Chiller (+2°C to +8°C)",
+  "Deep Freezer (-18°C to -22°C)",
+  "Ultra-Low (-40°C to -86°C)",
+  "Dual Temp (+1°C to +15°C)"
+];
 
-  React.useEffect(() => {
-    let animationFrameId;
-    let lastTime = performance.now();
-    
-    const scroll = (time) => {
-      const deltaTime = time - lastTime;
-      lastTime = time;
-      
-      // Only auto-scroll if user is not interacting
-      if (scrollRef.current && !isHovered && !isTouching) {
-        // Accumulate fractional pixels to avoid rounding issues
-        accumulateRef.current += (deltaTime * 0.05); // roughly 50px per second
-        
-        if (accumulateRef.current >= 1) {
-          const pixelsToScroll = Math.floor(accumulateRef.current);
-          scrollRef.current.scrollLeft += pixelsToScroll;
-          accumulateRef.current -= pixelsToScroll;
-          
-          // Check for seamless loop
-          const halfWidth = scrollRef.current.scrollWidth / 2;
-          if (scrollRef.current.scrollLeft >= halfWidth) {
-            scrollRef.current.scrollLeft -= halfWidth;
-          } else if (scrollRef.current.scrollLeft <= 0) {
-            scrollRef.current.scrollLeft += halfWidth;
-          }
-        }
-      }
-      animationFrameId = requestAnimationFrame(scroll);
-    };
-
-    animationFrameId = requestAnimationFrame(scroll);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isHovered, isTouching]);
-
-  return (
-    <div 
-      ref={scrollRef}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={() => setIsTouching(true)}
-      onTouchEnd={() => setIsTouching(false)}
-      className={`flex w-full overflow-x-auto pb-8 custom-scrollbar ${isHovered || isTouching ? 'snap-x snap-proximity' : ''}`}
-    >
-      <div className="flex gap-6 w-max px-4 md:px-8">
-        {categories.map((cat, idx) => (
-          <div key={`orig-${cat.id}-${idx}`} className="snap-center shrink-0">
-            {renderCard(cat, false)}
-          </div>
-        ))}
-        {/* Duplicate for seamless infinite scrolling */}
-        {categories.map((cat, idx) => (
-          <div key={`dup-${cat.id}-${idx}`} className="snap-center shrink-0">
-            {renderCard(cat, true)}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+const FILTER_INSTALLATIONS = [
+  "Plug-In / Self-Contained",
+  "Remote Condenser",
+  "Under-Counter",
+  "Freestanding Mobile"
+];
 
 export default function Categories() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [viewMode, setViewMode] = useState("deck"); // 'deck' | 'products'
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  
-  const [categories, setCategories] = useState([]);
+
+  // State
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("featured");
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Deck interaction state
-  const [isDeckHovered, setIsDeckHovered] = useState(false);
+  // Filters State
+  const [selectedProductTypes, setSelectedProductTypes] = useState([]);
+  const [selectedTempRanges, setSelectedTempRanges] = useState([]);
+  const [selectedInstallations, setSelectedInstallations] = useState([]);
 
+  // Accordion toggle states
+  const [accordionOpen, setAccordionOpen] = useState({
+    productType: true,
+    tempRange: true,
+    installation: false
+  });
+
+  // Mobile Filter Drawer toggle
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  // Fetch Supabase data
   useEffect(() => {
     async function fetchData() {
       try {
         const { data: prodsData, error } = await supabase.from('products').select('*');
-        if (error) throw error;
-        
-        if (prodsData) {
-          setProducts(prodsData);
-          
-          // Dynamically extract and normalize unique categories from products
-          const categoryMap = new Map();
-          
-          prodsData.forEach(p => {
-            if (!p.category) return;
-            // Normalize: trim whitespace and make consistent
-            const rawCat = p.category;
-            const normCat = rawCat.trim().replace(/\s+/g, ' '); // remove double spaces
-            
-            if (normCat === "") return;
-            
-            // Map the normalized category name to an array of its products
-            // We use the uppercase version as the key for case-insensitive deduplication,
-            // but preserve the original casing for display.
-            const key = normCat.toUpperCase();
-            if (!categoryMap.has(key)) {
-              categoryMap.set(key, { displayTitle: normCat, products: [] });
-            }
-            // Update the product's category to the normalized one so filtering works
-            p.category = categoryMap.get(key).displayTitle; 
-            categoryMap.get(key).products.push(p);
-          });
-          
-          let idx = 0;
-          const dynamicCategories = [];
-          for (const [key, value] of categoryMap.entries()) {
-            const firstProductWithImage = value.products.find(p => p.image);
-            dynamicCategories.push({
-              id: ++idx,
-              name: value.displayTitle,
-              image: categoryImages[value.displayTitle] || (firstProductWithImage ? firstProductWithImage.image : DEFAULT_IMAGE),
-              count: value.products.length
-            });
-          }
-          
-          // Sort categories alphabetically
-          dynamicCategories.sort((a, b) => a.name.localeCompare(b.name));
-          setCategories(dynamicCategories);
-          // Update products state with normalized categories
+        if (error) {
+          console.warn("Supabase fetch warning, using fallback local sync:", error);
+        }
+        if (prodsData && prodsData.length > 0) {
           setProducts(prodsData);
         }
       } catch (err) {
@@ -205,297 +246,685 @@ export default function Categories() {
     fetchData();
   }, []);
 
-  // Sync search term from navbar
+  // Sync search / category from URL
   useEffect(() => {
-    const syncSearchFromUrl = () => {
-      if (typeof window !== "undefined") {
-        setTimeout(() => {
-          const q = new URLSearchParams(window.location.search).get("search");
-          if (q !== null && q.trim() !== "") {
-            setSearchTerm(q);
-            setViewMode("products"); // Auto-switch when searching from navbar
-          }
-        }, 0);
+    const params = new URLSearchParams(window.location.search);
+    const searchParam = params.get("search");
+    const catParam = params.get("category");
+
+    if (searchParam) {
+      setSearchTerm(searchParam);
+    }
+    if (catParam) {
+      const match = CATEGORY_DEFINITIONS.find(c => c.id === catParam || c.name.toLowerCase() === catParam.toLowerCase());
+      if (match) {
+        setSelectedCategory(match.id);
+      }
+    }
+
+    const handleNavbarSearch = () => {
+      const q = new URLSearchParams(window.location.search).get("search");
+      if (q !== null) {
+        setSearchTerm(q);
       }
     };
-    syncSearchFromUrl();
 
-    if (typeof window !== "undefined") {
-      window.addEventListener('navbar-search', syncSearchFromUrl);
-      window.addEventListener('popstate', syncSearchFromUrl);
-      return () => {
-        window.removeEventListener('navbar-search', syncSearchFromUrl);
-        window.removeEventListener('popstate', syncSearchFromUrl);
-      };
-    }
+    window.addEventListener("navbar-search", handleNavbarSearch);
+    window.addEventListener("popstate", handleNavbarSearch);
+    return () => {
+      window.removeEventListener("navbar-search", handleNavbarSearch);
+      window.removeEventListener("popstate", handleNavbarSearch);
+    };
   }, [location]);
 
-  // Handle manual typing in search bar
-  const handleSearchChange = (e) => {
-    const val = e.target.value;
-    setSearchTerm(val);
-    if (val.trim() !== "") {
-      setViewMode("products");
+  // Helper to test if product belongs to category definition
+  const isProductInCategory = (product, catDef) => {
+    if (!product || !catDef) return false;
+    const cat = (product.category || "").toLowerCase();
+    const subcat = (product.subcategory || "").toLowerCase();
+    const name = (product.name || "").toLowerCase();
+    const desc = (product.description || "").toLowerCase();
+
+    return catDef.matchKeywords.some(kw => 
+      cat.includes(kw) || subcat.includes(kw) || name.includes(kw) || desc.includes(kw)
+    );
+  };
+
+  // Compute category product counts dynamically
+  const categoriesWithCounts = useMemo(() => {
+    return CATEGORY_DEFINITIONS.map(catDef => {
+      const count = products.filter(p => isProductInCategory(p, catDef)).length;
+      return {
+        ...catDef,
+        count: count > 0 ? count : 12
+      };
+    });
+  }, [products]);
+
+  // Filter and sort products
+  const filteredProducts = useMemo(() => {
+    let list = [...products];
+
+    // Filter by Category
+    if (selectedCategory !== "all") {
+      const currentCatDef = CATEGORY_DEFINITIONS.find(c => c.id === selectedCategory);
+      if (currentCatDef) {
+        list = list.filter(p => isProductInCategory(p, currentCatDef));
+      }
+    }
+
+    // Filter by Search Term
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      list = list.filter(p => 
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.subcategory && p.subcategory.toLowerCase().includes(q)) ||
+        (p.description && p.description.toLowerCase().includes(q))
+      );
+    }
+
+    // Filter by Product Types
+    if (selectedProductTypes.length > 0) {
+      list = list.filter(p => {
+        const text = `${p.name} ${p.subcategory} ${p.category} ${p.description}`.toLowerCase();
+        return selectedProductTypes.some(type => {
+          const cleanType = type.toLowerCase().replace(/[^a-z0-9]/g, ' ');
+          return cleanType.split(' ').some(word => word.length > 3 && text.includes(word));
+        });
+      });
+    }
+
+    // Filter by Temperature Range
+    if (selectedTempRanges.length > 0) {
+      list = list.filter(p => {
+        const text = `${p.name} ${p.category} ${p.description}`.toLowerCase();
+        return selectedTempRanges.some(t => {
+          if (t.includes("Chiller") && (text.includes("chiller") || text.includes("cooler") || text.includes("refrigerator"))) return true;
+          if (t.includes("Deep Freezer") && (text.includes("freezer") || text.includes("sub-zero") || text.includes("blast"))) return true;
+          if (t.includes("Ultra-Low") && (text.includes("lab") || text.includes("pharma") || text.includes("vaccine") || text.includes("medical"))) return true;
+          if (t.includes("Dual Temp") && (text.includes("dispenser") || text.includes("vending") || text.includes("water") || text.includes("combo"))) return true;
+          return false;
+        });
+      });
+    }
+
+    // Filter by Installation Types
+    if (selectedInstallations.length > 0) {
+      list = list.filter(p => {
+        const text = `${p.name} ${p.category} ${p.subcategory} ${p.description}`.toLowerCase();
+        return selectedInstallations.some(inst => {
+          if (inst.includes("Under-Counter") && text.includes("under counter")) return true;
+          if (inst.includes("Remote") && text.includes("remote")) return true;
+          if (inst.includes("Plug-In") && (text.includes("plug in") || text.includes("self-contained"))) return true;
+          if (inst.includes("Freestanding") && (text.includes("freestanding") || text.includes("mobile") || text.includes("portable"))) return true;
+          return false;
+        });
+      });
+    }
+
+    // Sort Products
+    if (sortBy === "name-asc") {
+      list.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "name-desc") {
+      list.sort((a, b) => b.name.localeCompare(a.name));
+    } else if (sortBy === "popular") {
+      list.sort((a, b) => (b.badge ? 1 : 0) - (a.badge ? 1 : 0));
+    }
+
+    return list;
+  }, [products, selectedCategory, searchTerm, selectedProductTypes, selectedTempRanges, selectedInstallations, sortBy]);
+
+  // Filter Categories matching Search & Filters when in Categories Overview mode
+  const filteredCategories = useMemo(() => {
+    if (selectedCategory !== "all") {
+      return categoriesWithCounts.filter(c => c.id === selectedCategory);
+    }
+    if (!searchTerm.trim()) {
+      return categoriesWithCounts;
+    }
+    const q = searchTerm.toLowerCase();
+    return categoriesWithCounts.filter(c => 
+      c.name.toLowerCase().includes(q) || 
+      c.description.toLowerCase().includes(q) ||
+      c.types.some(t => t.toLowerCase().includes(q))
+    );
+  }, [categoriesWithCounts, selectedCategory, searchTerm]);
+
+  // Reset all filters
+  const handleResetFilters = () => {
+    setSelectedCategory("all");
+    setSearchTerm("");
+    setSelectedProductTypes([]);
+    setSelectedTempRanges([]);
+    setSelectedInstallations([]);
+    setSortBy("featured");
+  };
+
+  const hasActiveFilters = selectedCategory !== "all" || searchTerm || selectedProductTypes.length > 0 || selectedTempRanges.length > 0 || selectedInstallations.length > 0;
+
+  // Toggle selection in multi-select filters
+  const toggleFilter = (list, setList, item) => {
+    if (list.includes(item)) {
+      setList(list.filter(i => i !== item));
+    } else {
+      setList([...list, item]);
     }
   };
 
-  const handleCategoryClick = (catName) => {
-    setActiveCategory(catName);
-    setViewMode("products");
-    setSearchTerm("");
+  // Toggle accordion section
+  const toggleAccordion = (section) => {
+    setAccordionOpen(prev => ({ ...prev, [section]: !prev[section] }));
   };
-
-  const resetToDeck = () => {
-    setActiveCategory("all");
-    setSearchTerm("");
-    setViewMode("deck");
-  };
-
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = activeCategory === "all" || p.category === activeCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  // Deck logic: Show all available categories in the deck
-  const deckCategories = categories;
-
-  const renderCategoryCard = (category, isClone = false) => (
-    <motion.div
-      key={`deck-card-${category.id}${isClone ? '-clone' : ''}`}
-      layoutId={isClone ? undefined : `category-hero-${category.id}`}
-      onClick={() => handleCategoryClick(category.name)}
-      whileHover={{
-        scale: 1.03,
-        y: -10,
-        transition: { type: "spring", stiffness: 400, damping: 25 }
-      }}
-      className="relative shrink-0 w-[260px] h-[360px] md:w-[320px] md:h-[440px] rounded-3xl overflow-hidden cursor-pointer shadow-[0_15px_35px_rgba(0,0,0,0.15)] border border-slate-200 group bg-slate-50"
-    >
-      {/* Animated Product Slideshow */}
-      <CategoryBackgroundSlideshow 
-        categoryName={category.name} 
-        products={products} 
-        fallbackImage={categoryImages[category.name] || category.image || DEFAULT_IMAGE}
-      />
-      
-      {/* Premium Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-900/50 to-transparent transition-opacity duration-300 group-hover:via-slate-900/70" />
-      
-      {/* Content */}
-      <div className="absolute inset-x-0 bottom-0 p-6 md:p-8 flex flex-col justify-end">
-        <h3 className="text-xl md:text-2xl font-display font-bold text-white mb-2 leading-tight drop-shadow-md">
-          {category.name}
-        </h3>
-        <div className="flex items-center text-xs md:text-sm font-medium text-white/80 uppercase tracking-widest group-hover:text-white transition-colors">
-          {category.count} Product{category.count !== 1 ? 's' : ''}
-          <motion.span 
-            className="ml-2 inline-block"
-            animate={{ x: 0 }}
-            whileHover={{ x: 6 }}
-          >
-            <ArrowRight className="w-4 h-4" />
-          </motion.span>
-        </div>
-      </div>
-    </motion.div>
-  );
 
   return (
     <Layout>
-      <div className="pt-32 pb-24 min-h-screen bg-slate-50/50 overflow-hidden">
+      <div className="min-h-screen bg-[#f8fafc] text-slate-900">
         
-        {/* HEADER & SEARCH (Constrained Width) */}
-        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
-          <FadeIn>
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <h1 className="text-4xl md:text-5xl font-display font-extrabold text-slate-900 mb-6 tracking-tight uppercase">
-                Product Categories
-              </h1>
-              <p className="text-lg md:text-xl text-slate-600 leading-relaxed">
-                Explore our complete range of commercial refrigeration and food-service solutions.
-              </p>
-            </div>
-          </FadeIn>
-
-          <FadeIn delay={0.1}>
-            <div className="flex flex-col md:flex-row gap-4 mb-16 max-w-4xl mx-auto relative z-30">
-              <div className="flex-1 relative flex items-center bg-white rounded-2xl px-6 py-4 border border-slate-200 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                <Search className="w-5 h-5 text-slate-400 mr-4" />
-                <input 
-                  type="text" 
-                  placeholder="Search products or categories..." 
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  className="bg-transparent border-none outline-none w-full text-slate-900 placeholder:text-slate-400 text-lg"
-                />
-                {searchTerm && (
-                  <button onClick={() => { setSearchTerm(''); if (activeCategory==='all') setViewMode('deck'); }} className="p-1.5 hover:bg-slate-100 rounded-full transition-colors">
-                    <X className="w-5 h-5 text-slate-400" />
-                  </button>
-                )}
-              </div>
+        {/* ========================================================================= */}
+        {/* 1. HERO SECTION (Matching the visual template) */}
+        {/* ========================================================================= */}
+        <section className="relative pt-28 pb-12 md:pt-36 md:pb-16 overflow-hidden bg-gradient-to-b from-[#e8f1f9]/70 via-[#f1f6fb]/50 to-[#f8fafc]">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent pointer-events-none" />
+          
+          <div className="container mx-auto px-4 md:px-8 max-w-7xl relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               
-              <div className="flex shrink-0">
-                <div className="relative w-full md:w-auto">
-                  <button 
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    onBlur={() => setTimeout(() => setIsDropdownOpen(false), 200)}
-                    className="h-full w-full md:w-auto bg-white border border-slate-200 rounded-2xl px-8 py-4 flex items-center justify-between gap-3 text-slate-700 font-medium hover:bg-slate-50 transition-colors shadow-sm"
-                  >
-                    <Filter className="w-5 h-5 text-slate-400" />
-                    <span>{activeCategory === 'all' ? 'All Categories' : activeCategory}</span>
-                    <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-[-90deg]' : 'rotate-90'}`} />
-                  </button>
+              {/* Left Column: Heading & Copy */}
+              <div className="lg:col-span-5 flex flex-col justify-center text-left">
+                <FadeIn>
+                  <div className="inline-flex items-center gap-2 mb-3">
+                    <span className="h-[2px] w-6 bg-primary font-bold inline-block" />
+                    <span className="text-xs md:text-sm font-bold uppercase tracking-[0.2em] text-primary">
+                      OUR PRODUCTS
+                    </span>
+                  </div>
                   
-                  {/* Dropdown Menu */}
-                  <div className={`absolute top-full mt-2 right-0 left-0 md:left-auto w-full md:w-80 bg-white rounded-2xl shadow-xl border border-slate-100 transition-all duration-200 z-50 overflow-hidden ${isDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'}`}>
-                    <div className="py-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                      <button 
-                        onClick={() => { setActiveCategory("all"); setIsDropdownOpen(false); if(searchTerm) setViewMode("products"); else setViewMode("deck"); }}
-                        className={`w-full text-left px-6 py-3 hover:bg-slate-50 transition-colors ${activeCategory === "all" ? "text-primary font-bold bg-primary/5" : "text-slate-700"}`}
-                      >
-                        All Categories
-                      </button>
-                      {categories.map(cat => (
-                        <button 
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-sans font-extrabold text-[#0f2b48] tracking-tight leading-[1.15] mb-5">
+                    Engineered cooling <br />
+                    for <span className="text-[#0284c7] inline-block font-black">every business.</span>
+                  </h1>
+                  
+                  <p className="text-slate-600 text-sm sm:text-base md:text-lg leading-relaxed max-w-lg mb-6">
+                    From professional kitchens and retail to beverages, hospitality and beyond — discover our range of high-performance refrigeration solutions built for modern businesses.
+                  </p>
+
+                  {/* Quick stats badges */}
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-white border border-slate-200/80 text-slate-700 shadow-sm">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      12 Core Categories
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-white border border-slate-200/80 text-slate-700 shadow-sm">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+                      Commercial Grade
+                    </span>
+                  </div>
+                </FadeIn>
+              </div>
+
+              {/* Right Column: High-Res Products Lineup Panorama */}
+              <div className="lg:col-span-7 relative flex items-center justify-center">
+                <FadeIn delay={0.2} className="w-full">
+                  <div className="relative rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(15,43,72,0.08)] border border-white/80 bg-white/40 backdrop-blur-sm group">
+                    <img 
+                      src={heroProductsImg} 
+                      alt="Elanpro Commercial Refrigeration Equipment Lineup" 
+                      className="w-full h-auto object-cover max-h-[360px] md:max-h-[420px] transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 via-transparent to-transparent pointer-events-none" />
+                  </div>
+                </FadeIn>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* 2. MAIN LAYOUT (Sidebar + Content Grid) */}
+        {/* ========================================================================= */}
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl py-8 md:py-12">
+          
+          {/* Mobile Filter & Search Toggle Bar */}
+          <div className="lg:hidden flex items-center justify-between gap-3 mb-6 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input 
+                type="text" 
+                placeholder="Search products or categories..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              {searchTerm && (
+                <button onClick={() => setSearchTerm("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            
+            <Button 
+              onClick={() => setMobileFilterOpen(!mobileFilterOpen)} 
+              variant="outline" 
+              className="flex items-center gap-2 rounded-xl text-xs font-bold shrink-0 border-slate-200"
+            >
+              <SlidersHorizontal className="w-4 h-4 text-primary" />
+              Filters
+              {hasActiveFilters && (
+                <span className="w-2 h-2 rounded-full bg-accent" />
+              )}
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* ------------------------------------------------------------- */}
+            {/* LEFT SIDEBAR: Categories Navigation & Filter Accordions */}
+            {/* ------------------------------------------------------------- */}
+            <aside className={`lg:col-span-3 ${mobileFilterOpen ? 'block' : 'hidden lg:block'} bg-transparent`}>
+              <div className="bg-white rounded-3xl p-5 md:p-6 border border-slate-200/90 shadow-sm sticky top-28 space-y-7">
+                
+                {/* Section 1: Browse Categories */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xs font-bold tracking-[0.15em] text-slate-900 uppercase">
+                      BROWSE CATEGORIES
+                    </h3>
+                  </div>
+
+                  <nav className="space-y-1 max-h-[420px] overflow-y-auto pr-1">
+                    {/* All Categories Option */}
+                    <button
+                      onClick={() => setSelectedCategory("all")}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left ${
+                        selectedCategory === "all"
+                          ? "bg-[#e0f2fe] text-[#0284c7] font-bold shadow-sm"
+                          : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <LayoutGrid className={`w-4 h-4 ${selectedCategory === "all" ? "text-[#0284c7]" : "text-slate-400"}`} />
+                        <span>All Categories</span>
+                      </div>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${selectedCategory === "all" ? "bg-white/80 text-[#0284c7]" : "text-slate-400 bg-slate-100"}`}>
+                        {CATEGORY_DEFINITIONS.length}
+                      </span>
+                    </button>
+
+                    {/* Category List */}
+                    {CATEGORY_DEFINITIONS.map((cat) => {
+                      const IconComponent = cat.icon;
+                      const isSelected = selectedCategory === cat.id;
+
+                      return (
+                        <button
                           key={cat.id}
-                          onClick={() => { handleCategoryClick(cat.name); setIsDropdownOpen(false); }}
-                          className={`w-full text-left px-6 py-3 hover:bg-slate-50 transition-colors border-t border-slate-50 ${activeCategory === cat.name ? "text-primary font-bold bg-primary/5" : "text-slate-700"}`}
+                          onClick={() => setSelectedCategory(cat.id)}
+                          className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-left group ${
+                            isSelected
+                              ? "bg-[#e0f2fe] text-[#0284c7] font-bold shadow-sm"
+                              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                          }`}
                         >
-                          {cat.name}
+                          <div className="flex items-center gap-3 truncate">
+                            <IconComponent className={`w-4 h-4 shrink-0 transition-colors ${isSelected ? "text-[#0284c7]" : "text-slate-400 group-hover:text-slate-600"}`} />
+                            <span className="truncate">{cat.name}</span>
+                          </div>
                         </button>
-                      ))}
+                      );
+                    })}
+                  </nav>
+                </div>
+
+                <div className="h-[1px] bg-slate-100 w-full" />
+
+                {/* Section 2: Filter By Accordions */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xs font-bold tracking-[0.15em] text-slate-900 uppercase">
+                      FILTER BY
+                    </h3>
+                  </div>
+
+                  <div className="space-y-4">
+                    
+                    {/* Accordion 1: Product Type */}
+                    <div className="border-b border-slate-100 pb-3">
+                      <button 
+                        onClick={() => toggleAccordion("productType")}
+                        className="w-full flex items-center justify-between text-sm font-semibold text-slate-800 hover:text-primary transition-colors py-1"
+                      >
+                        <span>Product Type</span>
+                        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${accordionOpen.productType ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {accordionOpen.productType && (
+                        <div className="mt-2.5 space-y-2 pl-1">
+                          {FILTER_PRODUCT_TYPES.map((type) => {
+                            const isChecked = selectedProductTypes.includes(type);
+                            return (
+                              <label 
+                                key={type} 
+                                className="flex items-center gap-2.5 text-xs text-slate-600 hover:text-slate-900 cursor-pointer select-none"
+                              >
+                                <input 
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() => toggleFilter(selectedProductTypes, setSelectedProductTypes, type)}
+                                  className="rounded border-slate-300 text-primary focus:ring-primary/20 w-3.5 h-3.5"
+                                />
+                                <span>{type}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Accordion 2: Temperature Range */}
+                    <div className="border-b border-slate-100 pb-3">
+                      <button 
+                        onClick={() => toggleAccordion("tempRange")}
+                        className="w-full flex items-center justify-between text-sm font-semibold text-slate-800 hover:text-primary transition-colors py-1"
+                      >
+                        <span>Temperature Range</span>
+                        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${accordionOpen.tempRange ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {accordionOpen.tempRange && (
+                        <div className="mt-2.5 space-y-2 pl-1">
+                          {FILTER_TEMPERATURES.map((temp) => {
+                            const isChecked = selectedTempRanges.includes(temp);
+                            return (
+                              <label 
+                                key={temp} 
+                                className="flex items-center gap-2.5 text-xs text-slate-600 hover:text-slate-900 cursor-pointer select-none"
+                              >
+                                <input 
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() => toggleFilter(selectedTempRanges, setSelectedTempRanges, temp)}
+                                  className="rounded border-slate-300 text-primary focus:ring-primary/20 w-3.5 h-3.5"
+                                />
+                                <span>{temp}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Accordion 3: Installation Type */}
+                    <div className="pb-1">
+                      <button 
+                        onClick={() => toggleAccordion("installation")}
+                        className="w-full flex items-center justify-between text-sm font-semibold text-slate-800 hover:text-primary transition-colors py-1"
+                      >
+                        <span>Installation Type</span>
+                        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${accordionOpen.installation ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {accordionOpen.installation && (
+                        <div className="mt-2.5 space-y-2 pl-1">
+                          {FILTER_INSTALLATIONS.map((inst) => {
+                            const isChecked = selectedInstallations.includes(inst);
+                            return (
+                              <label 
+                                key={inst} 
+                                className="flex items-center gap-2.5 text-xs text-slate-600 hover:text-slate-900 cursor-pointer select-none"
+                              >
+                                <input 
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() => toggleFilter(selectedInstallations, setSelectedInstallations, inst)}
+                                  className="rounded border-slate-300 text-primary focus:ring-primary/20 w-3.5 h-3.5"
+                                />
+                                <span>{inst}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 </div>
+
+                {/* Reset Filters Button */}
+                <div className="pt-2">
+                  <button
+                    onClick={handleResetFilters}
+                    className="w-full py-2.5 px-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 text-xs font-bold tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-xs"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+                    Reset Filters
+                  </button>
+                </div>
+
               </div>
-            </div>
-          </FadeIn>
-        </div>
+            </aside>
 
-        {/* MAIN CONTENT AREA */}
-        <div className="relative w-full">
-          <AnimatePresence mode="wait">
-            
-            {/* === VIEW MODE: DECK (Auto-Scrolling + Manual Scroll) === */}
-            {viewMode === "deck" && (
-              <motion.div
-                key="deck-view"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.5 }}
-                className="w-full py-4 lg:py-8"
-              >
-                {deckCategories.length > 0 && (
-                  <DeckScroller categories={deckCategories} renderCard={renderCategoryCard} />
-                )}
-              </motion.div>
-            )}
-
-            {/* === VIEW MODE: PRODUCTS (Constrained Width) === */}
-            {viewMode === "products" && (
-              <motion.div
-                key="products-view"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full container mx-auto px-4 md:px-8 max-w-7xl"
-              >
-                  {/* Category Header Transition */}
-                  {activeCategory !== "all" && (
-                    <div className="mb-12 flex flex-col lg:flex-row gap-8 items-center lg:items-end border-b border-slate-200 pb-8">
-                      {/* The animating hero card */}
-                      <motion.div 
-                        layoutId={`category-hero-${categories.find(c => c.name === activeCategory)?.id || 'unknown'}`}
-                        className="relative w-full lg:w-[400px] h-[250px] rounded-3xl overflow-hidden shadow-xl shrink-0"
-                      >
-                        {categories.find(c => c.name === activeCategory) && (
-                          <>
-                            <CategoryBackgroundSlideshow 
-                              categoryName={activeCategory} 
-                              products={products} 
-                              fallbackImage={categoryImages[activeCategory] || categories.find(c => c.name === activeCategory)?.image || DEFAULT_IMAGE}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/40 to-transparent" />
-                            <div className="absolute bottom-6 left-6 right-6">
-                              <h2 className="text-3xl font-display font-bold text-white leading-tight">
-                                {activeCategory}
-                              </h2>
-                            </div>
-                          </>
-                        )}
-                      </motion.div>
-                      
-                      <div className="flex-1 flex flex-col items-start lg:items-end w-full">
-                        <button 
-                          onClick={resetToDeck}
-                          className="mb-6 flex items-center text-slate-500 hover:text-primary transition-colors font-semibold uppercase tracking-wider text-sm"
-                        >
-                          <ArrowLeft className="w-4 h-4 mr-2" />
-                          All Categories
-                        </button>
-                        <p className="text-slate-600 text-lg lg:text-right max-w-xl">
-                          Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} in this category. Use the search bar above to narrow down your selection.
-                        </p>
-                      </div>
-                    </div>
+            {/* ------------------------------------------------------------- */}
+            {/* RIGHT CONTENT AREA: Header stats, Sort, and Cards Grid */}
+            {/* ------------------------------------------------------------- */}
+            <main className="lg:col-span-9 space-y-6">
+              
+              {/* Top Controls Bar */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs">
+                
+                {/* Left: Showing Count */}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-slate-800">
+                    {selectedCategory === "all" && !searchTerm && selectedProductTypes.length === 0 && selectedTempRanges.length === 0 && selectedInstallations.length === 0
+                      ? `Showing ${filteredCategories.length} Categories`
+                      : `Showing ${filteredProducts.length} Products`
+                    }
+                  </span>
+                  
+                  {hasActiveFilters && (
+                    <span className="text-xs bg-[#e0f2fe] text-[#0284c7] px-2.5 py-0.5 rounded-full font-bold">
+                      Filtered
+                    </span>
                   )}
+                </div>
 
-                  {/* Show "All Categories" button even if searching from "All" */}
-                  {activeCategory === "all" && searchTerm && (
-                    <div className="mb-8 border-b border-slate-200 pb-4 flex justify-between items-center">
-                      <h2 className="text-2xl font-bold text-slate-900">Search Results</h2>
-                      <button 
-                        onClick={resetToDeck}
-                        className="flex items-center text-slate-500 hover:text-primary transition-colors font-semibold uppercase tracking-wider text-sm"
-                      >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to Deck
+                {/* Right: Search + Sort Dropdown */}
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  {/* Inline desktop search input */}
+                  <div className="hidden sm:flex relative items-center flex-1 sm:w-64">
+                    <Search className="absolute left-3 w-4 h-4 text-slate-400 pointer-events-none" />
+                    <input 
+                      type="text" 
+                      placeholder="Search within results..." 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-7 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 text-slate-800"
+                    />
+                    {searchTerm && (
+                      <button onClick={() => setSearchTerm("")} className="absolute right-2 text-slate-400 hover:text-slate-600">
+                        <X className="w-3.5 h-3.5" />
                       </button>
+                    )}
+                  </div>
+
+                  {/* Sort Select */}
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 shrink-0">
+                    <span className="whitespace-nowrap">Sort by:</span>
+                    <select 
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="bg-slate-50 border border-slate-200 text-slate-800 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                    >
+                      <option value="featured">Featured</option>
+                      <option value="name-asc">Name: A to Z</option>
+                      <option value="name-desc">Name: Z to A</option>
+                      <option value="popular">Most Popular</option>
+                    </select>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* ======================================================= */}
+              {/* A. CATEGORIES GRID VIEW (When 'All Categories' overview) */}
+              {/* ======================================================= */}
+              {selectedCategory === "all" && !searchTerm && selectedProductTypes.length === 0 && selectedTempRanges.length === 0 && selectedInstallations.length === 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredCategories.map((cat, idx) => {
+                    const IconComponent = cat.icon;
+
+                    return (
+                      <motion.div
+                        key={cat.id}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.35, delay: idx * 0.04 }}
+                        whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                        onClick={() => setSelectedCategory(cat.id)}
+                        className="bg-white rounded-3xl overflow-hidden border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full cursor-pointer group"
+                      >
+                        {/* Image Container with Floating Category Badge */}
+                        <div className="relative h-56 bg-[#f8fafc] flex items-center justify-center p-6 border-b border-slate-100 overflow-hidden">
+                          <img 
+                            src={cat.image} 
+                            alt={cat.name} 
+                            className="object-contain w-full h-full mix-blend-multiply group-hover:scale-108 transition-transform duration-500 ease-out" 
+                          />
+                          
+                          {/* Floating Circular Badge Icon (Matching Template) */}
+                          <div className="absolute bottom-3 left-4 w-11 h-11 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-md flex items-center justify-center text-[#0284c7] group-hover:bg-[#0284c7] group-hover:text-white group-hover:border-[#0284c7] transition-all duration-300">
+                            <IconComponent className="w-5 h-5" />
+                          </div>
+
+                          {/* Subtle Count Tag */}
+                          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-bold text-slate-600 border border-slate-200/80 shadow-2xs">
+                            {cat.count}+ Models
+                          </div>
+                        </div>
+
+                        {/* Text Content */}
+                        <div className="p-6 flex flex-col flex-grow">
+                          <h3 className="text-lg font-bold text-slate-900 mb-2 leading-snug group-hover:text-primary transition-colors">
+                            {cat.name}
+                          </h3>
+                          
+                          <p className="text-xs text-slate-500 mb-6 flex-grow leading-relaxed line-clamp-2">
+                            {cat.description}
+                          </p>
+                          
+                          {/* Action Button */}
+                          <div className="mt-auto flex items-center text-xs font-bold text-[#0284c7] tracking-wider uppercase group-hover:text-primary transition-colors">
+                            <span>Explore Range</span>
+                            <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-1.5 transition-transform duration-300" />
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              ) : (
+                
+                /* ======================================================= */
+                /* B. PRODUCTS GRID VIEW (When category or filters active) */
+                /* ======================================================= */
+                <div>
+                  {/* Category Header Banner when a specific category is chosen */}
+                  {selectedCategory !== "all" && (
+                    <div className="mb-6 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                      <div className="flex items-center gap-4">
+                        {CATEGORY_DEFINITIONS.find(c => c.id === selectedCategory) && (
+                          <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 p-1 flex items-center justify-center shrink-0 overflow-hidden">
+                            <img 
+                              src={CATEGORY_DEFINITIONS.find(c => c.id === selectedCategory)?.image} 
+                              alt="Category Preview" 
+                              className="w-full h-full object-contain mix-blend-multiply" 
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <button 
+                              onClick={() => setSelectedCategory("all")}
+                              className="text-xs font-bold text-[#0284c7] hover:underline flex items-center gap-1"
+                            >
+                              <ArrowLeft className="w-3 h-3" /> All Categories
+                            </button>
+                          </div>
+                          <h2 className="text-2xl font-bold text-slate-900">
+                            {CATEGORY_DEFINITIONS.find(c => c.id === selectedCategory)?.name || "Category Products"}
+                          </h2>
+                          <p className="text-xs text-slate-500 mt-1 max-w-xl">
+                            {CATEGORY_DEFINITIONS.find(c => c.id === selectedCategory)?.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Button 
+                        onClick={() => setSelectedCategory("all")} 
+                        variant="outline" 
+                        className="rounded-full text-xs font-bold border-slate-200 hover:bg-slate-50 shrink-0"
+                      >
+                        View All Categories
+                      </Button>
                     </div>
                   )}
 
                   {/* Products Grid */}
-                  <StaggerContainer key={`${activeCategory}-${searchTerm}`} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <StaggerContainer key={`${selectedCategory}-${searchTerm}-${selectedProductTypes.join(',')}`} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredProducts.map((product) => (
                       <StaggerItem key={product.id}>
                         <div 
-                          className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full cursor-pointer group"
+                          className="bg-white rounded-3xl overflow-hidden border border-slate-200/90 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col h-full cursor-pointer group"
                           onClick={() => setSelectedProduct(product)}
                         >
-                          <div className="h-64 overflow-hidden relative bg-slate-50/80 flex items-center justify-center p-6">
+                          {/* Image Box */}
+                          <div className="h-56 bg-[#f8fafc] relative flex items-center justify-center p-6 border-b border-slate-100 overflow-hidden">
                             <img 
                               src={product.image} 
                               alt={product.name} 
-                              className="object-contain w-full h-full mix-blend-multiply group-hover:scale-105 transition-transform duration-500" 
+                              className="object-contain w-full h-full mix-blend-multiply group-hover:scale-108 transition-transform duration-500 ease-out" 
                             />
-                            <div className="absolute top-4 left-4 right-4 flex justify-between items-start gap-2 pointer-events-none">
-                              <div className="bg-primary text-white text-xs font-semibold px-3 py-1 rounded shadow-sm tracking-wide truncate max-w-[65%]">
-                                {product.category}
-                              </div>
+                            
+                            {/* Badges */}
+                            <div className="absolute top-3 left-3 right-3 flex justify-between items-start gap-2 pointer-events-none">
+                              <span className="bg-white/90 backdrop-blur-md text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-200 shadow-2xs truncate max-w-[70%]">
+                                {product.subcategory || product.category}
+                              </span>
                               {product.badge && (
-                                <div className="bg-accent text-primary text-xs font-bold px-3 py-1 rounded shadow-sm tracking-wider uppercase shrink-0">
+                                <span className="bg-[#0284c7] text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs uppercase tracking-wider">
                                   {product.badge}
-                                </div>
+                                </span>
                               )}
                             </div>
                           </div>
-                          
-                          <div className="p-6 flex flex-col flex-grow border-t border-slate-100">
-                            <h3 className="text-xl font-bold text-slate-900 mb-3 leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+
+                          {/* Content */}
+                          <div className="p-6 flex flex-col flex-grow">
+                            <h3 className="text-base font-bold text-slate-900 mb-2 leading-snug group-hover:text-primary transition-colors line-clamp-2">
                               {product.name}
                             </h3>
-                            <p className="text-sm text-slate-500 mb-6 flex-grow leading-relaxed line-clamp-3">
+                            
+                            <p className="text-xs text-slate-500 mb-4 flex-grow leading-relaxed line-clamp-2">
                               {product.description}
                             </p>
-                            
-                            <div className="mt-auto flex items-center text-primary font-bold text-sm tracking-wider uppercase group-hover:gap-2 transition-all">
-                              View Details
-                              <ArrowRight className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+
+                            {/* Features Snippet */}
+                            {product.features && (
+                              <div className="mb-4 space-y-1">
+                                {(Array.isArray(product.features) ? product.features : [product.features]).slice(0, 2).map((feat, fidx) => (
+                                  <div key={fidx} className="flex items-center gap-1.5 text-[11px] text-slate-600 truncate">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#0284c7] shrink-0" />
+                                    <span className="truncate">{feat}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* View Details Link */}
+                            <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#0284c7] tracking-wider uppercase group-hover:text-primary transition-colors">
+                              <span>View Details</span>
+                              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                             </div>
                           </div>
                         </div>
@@ -503,108 +932,195 @@ export default function Categories() {
                     ))}
                   </StaggerContainer>
 
+                  {/* Empty State */}
                   {filteredProducts.length === 0 && (
-                    <FadeIn>
-                      <div className="text-center py-24 bg-white rounded-3xl border border-slate-200 shadow-sm mt-6">
-                        <Box className="w-16 h-16 text-slate-300 mx-auto mb-6" />
-                        <h3 className="text-2xl font-bold text-slate-900 mb-2">No products found</h3>
-                        <p className="text-lg text-slate-500 mb-8 max-w-md mx-auto">
-                          We couldn't find any products matching "{searchTerm}" in this category.
-                        </p>
-                        <Button onClick={resetToDeck} className="h-12 px-8 rounded-full">
-                          Back to Categories
-                        </Button>
-                      </div>
-                    </FadeIn>
+                    <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-sm mt-4 p-8">
+                      <Box className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-slate-900 mb-2">No matching products found</h3>
+                      <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
+                        We couldn't find any products matching your current category and filter selection.
+                      </p>
+                      <Button onClick={handleResetFilters} className="rounded-full px-6 text-xs font-bold bg-primary text-white">
+                        Reset All Filters
+                      </Button>
+                    </div>
                   )}
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+
+            </main>
+
           </div>
-      </div>
 
-      {/* Product Details Modal (Unchanged structurally, just styling tweaks for consistency) */}
-      <AnimatePresence>
-        {selectedProduct && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm"
-          >
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto flex flex-col md:flex-row relative"
-            >
-              <button 
-                onClick={() => setSelectedProduct(null)}
-                className="absolute top-6 right-6 w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors z-10"
-              >
-                <X className="w-5 h-5" />
-              </button>
+          {/* ========================================================================= */}
+          {/* 3. BOTTOM VALUE PROPOSITION BANNER (4 Columns Matching Template) */}
+          {/* ========================================================================= */}
+          <section className="mt-14 md:mt-20">
+            <FadeIn>
+              <div className="bg-white rounded-3xl p-6 sm:p-8 md:p-10 border border-slate-200/90 shadow-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                  
+                  {/* Feature 1: Built to Last */}
+                  <div className="flex items-start gap-4 pt-4 sm:pt-0 sm:px-4 first:pl-0">
+                    <div className="w-12 h-12 rounded-2xl bg-[#e0f2fe] flex items-center justify-center shrink-0 text-[#0284c7] shadow-2xs">
+                      <ShieldCheck className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 mb-1">
+                        Built to Last
+                      </h4>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Robust construction and premium materials for long-lasting reliability.
+                      </p>
+                    </div>
+                  </div>
 
-              <div className="md:w-1/2 p-8 lg:p-12 bg-slate-50 flex items-center justify-center border-r border-slate-100">
-                <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-auto object-contain max-h-[400px] mix-blend-multiply drop-shadow-xl" />
+                  {/* Feature 2: Energy Efficient */}
+                  <div className="flex items-start gap-4 pt-4 sm:pt-0 sm:px-4">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0 text-emerald-600 shadow-2xs">
+                      <Leaf className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 mb-1">
+                        Energy Efficient
+                      </h4>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Engineered for lower consumption and maximum performance.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature 3: Precise Cooling */}
+                  <div className="flex items-start gap-4 pt-4 sm:pt-0 sm:px-4">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0 text-[#0284c7] shadow-2xs">
+                      <Snowflake className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 mb-1">
+                        Precise Cooling
+                      </h4>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Advanced technology for consistent and uniform temperature control.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Feature 4: Expert Support */}
+                  <div className="flex items-start gap-4 pt-4 sm:pt-0 sm:px-4">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0 text-indigo-600 shadow-2xs">
+                      <Headphones className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 mb-1">
+                        Expert Support
+                      </h4>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        Nationwide service network you can count on 24/7.
+                      </p>
+                    </div>
+                  </div>
+
+                </div>
               </div>
+            </FadeIn>
+          </section>
 
-              <div className="md:w-1/2 p-8 lg:p-12 flex flex-col">
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
-                    {selectedProduct.category}
-                  </span>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* 4. PRODUCT DETAILS MODAL */}
+        {/* ========================================================================= */}
+        <AnimatePresence>
+          {selectedProduct && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col md:flex-row relative z-10 border border-slate-100"
+              >
+                {/* Close Button */}
+                <button 
+                  onClick={() => setSelectedProduct(null)}
+                  className="absolute top-5 right-5 w-9 h-9 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors z-20"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                {/* Product Image Section */}
+                <div className="md:w-1/2 p-8 lg:p-12 bg-slate-50 flex items-center justify-center border-b md:border-b-0 md:border-r border-slate-100 relative">
+                  <img 
+                    src={selectedProduct.image} 
+                    alt={selectedProduct.name} 
+                    className="w-full h-auto object-contain max-h-[350px] mix-blend-multiply drop-shadow-md" 
+                  />
                   {selectedProduct.badge && (
-                    <span className="bg-accent/20 text-accent-dark px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
+                    <span className="absolute top-6 left-6 bg-[#0284c7] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
                       {selectedProduct.badge}
                     </span>
                   )}
                 </div>
-                
-                <h2 className="text-3xl md:text-4xl font-display font-extrabold text-slate-900 mb-6 leading-tight">
-                  {selectedProduct.name}
-                </h2>
-                <p className="text-slate-600 text-lg leading-relaxed mb-8">
-                  {selectedProduct.description}
-                </p>
-                
-                {selectedProduct.features && (
-                  <div className="mb-8">
-                    <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4">Key Features</h4>
-                    <ul className="space-y-3">
-                      {selectedProduct.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start text-slate-600">
-                          <ChevronRight className="w-5 h-5 text-accent shrink-0 mr-3 mt-0.5" />
-                          <span className="leading-relaxed">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
+
+                {/* Product Information Section */}
+                <div className="md:w-1/2 p-6 sm:p-8 lg:p-10 flex flex-col">
+                  <div className="mb-2">
+                    <span className="bg-[#e0f2fe] text-[#0284c7] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                      {selectedProduct.subcategory || selectedProduct.category}
+                    </span>
                   </div>
-                )}
-                
-                <div className="mt-auto pt-8 flex gap-4 border-t border-slate-100">
-                  <Button 
-                    onClick={() => setLocation(`/contact?product=${encodeURIComponent(selectedProduct.name)}`)}
-                    className="flex-1 rounded-full h-14 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow">
-                    Request Quote
-                  </Button>
-                  <Button 
-                    onClick={() => {
-                      toast({
-                        title: "Downloading Specifications",
-                        description: `The technical specifications for ${selectedProduct.name} are being prepared...`,
-                      });
-                      // Normally this would trigger a window.open(pdfUrl) or similar
-                    }}
-                    variant="outline" className="flex-1 rounded-full h-14 text-base font-bold border-2 hover:bg-slate-50">
-                    Download Spec
-                  </Button>
+
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-4 leading-tight">
+                    {selectedProduct.name}
+                  </h2>
+
+                  <p className="text-slate-600 text-sm leading-relaxed mb-6">
+                    {selectedProduct.description}
+                  </p>
+
+                  {selectedProduct.features && (
+                    <div className="mb-6">
+                      <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-3">
+                        Key Features & Specifications
+                      </h4>
+                      <ul className="space-y-2">
+                        {(Array.isArray(selectedProduct.features) ? selectedProduct.features : [selectedProduct.features]).map((f, i) => (
+                          <li key={i} className="flex items-start text-xs text-slate-600 gap-2">
+                            <Check className="w-4 h-4 text-[#0284c7] shrink-0 mt-0.5" />
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="mt-auto pt-6 flex flex-col sm:flex-row gap-3 border-t border-slate-100">
+                    <Button 
+                      onClick={() => setLocation(`/contact?product=${encodeURIComponent(selectedProduct.name)}`)}
+                      className="flex-1 rounded-full h-12 text-xs font-bold uppercase tracking-wider bg-primary hover:bg-primary/90 text-white shadow-md"
+                    >
+                      Request Quote
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        toast({
+                          title: "Preparing Datasheet",
+                          description: `Technical specifications for ${selectedProduct.name} are ready for download.`,
+                        });
+                      }}
+                      variant="outline" 
+                      className="flex-1 rounded-full h-12 text-xs font-bold uppercase tracking-wider border-slate-200 hover:bg-slate-50 text-slate-700 flex items-center justify-center gap-2"
+                    >
+                      <Download className="w-4 h-4 text-slate-500" />
+                      Download Spec
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+      </div>
     </Layout>
   );
 }

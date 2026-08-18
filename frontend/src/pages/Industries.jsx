@@ -4,6 +4,13 @@ import { FadeIn } from "@/components/ui/motion";
 import { supabase } from "@/lib/supabase";
 import { CheckCircle2 } from "lucide-react";
 
+const INDUSTRY_FALLBACK_IMAGES = {
+  "Healthcare": "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?q=80&w=1920&auto=format&fit=crop",
+  "Hospitality": "https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=1925&auto=format&fit=crop",
+  "Retail & Supermarkets": "https://images.unsplash.com/photo-1578916171728-46686eac8d58?q=80&w=1974&auto=format&fit=crop",
+  "Food & Beverage": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1974&auto=format&fit=crop"
+};
+
 export default function Industries() {
   const [industries, setIndustries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +48,10 @@ export default function Industries() {
       <div className="bg-background">
         {industries.map((ind, i) => {
           const isEven = i % 2 === 0;
+          const industryImage = (ind.image && (ind.image.startsWith('http') || ind.image.startsWith('/'))) 
+            ? ind.image 
+            : (INDUSTRY_FALLBACK_IMAGES[ind.name] || "/images/healthcare_refrigeration.jpg");
+
           return (
             <section key={ind.id} className={`py-16 md:py-16 ${isEven ? 'bg-white' : 'bg-secondary/10'}`}>
               <div className="container mx-auto px-4 md:px-6">
@@ -48,13 +59,17 @@ export default function Industries() {
                   
                   <div className="w-full md:w-1/2">
                     <FadeIn direction={isEven ? "right" : "left"}>
-                      <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+                      <div className="relative rounded-3xl overflow-hidden shadow-2xl group">
                         <img
-                          src={ind.image}
+                          src={industryImage}
                           alt={ind.name}
-                          className="w-full aspect-square md:aspect-[4/3] object-cover" />
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = INDUSTRY_FALLBACK_IMAGES[ind.name] || "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?q=80&w=1920&auto=format&fit=crop";
+                          }}
+                          className="w-full aspect-square md:aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
                         
-                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent pointer-events-none" />
                         <div className="absolute bottom-6 left-6 right-6">
                           <div className="glass-panel rounded-2xl p-4 inline-block">
                             <span className="text-primary font-bold text-lg">{ind.stat}</span>
