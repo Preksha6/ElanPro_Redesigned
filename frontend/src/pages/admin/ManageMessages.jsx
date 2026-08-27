@@ -1,14 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, Check, Mail, Building, Phone, Calendar } from 'lucide-react';
+import { 
+  Trash2, 
+  Check, 
+  Mail, 
+  Building, 
+  Phone, 
+  Calendar, 
+  Search, 
+  MessageSquare, 
+  Send,
+  User,
+  Clock,
+  CheckCircle2,
+  Inbox
+} from 'lucide-react';
 
 export default function ManageMessages() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'unread', 'read'
+  const [searchQuery, setSearchQuery] = useState('');
   
   const { toast } = useToast();
 
@@ -18,138 +35,311 @@ export default function ManageMessages() {
 
   async function fetchMessages() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('contact_messages')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (error) {
-      toast({ variant: 'destructive', title: 'Error fetching messages', description: error.message });
-    } else {
-      setMessages(data || []);
+    try {
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        toast({ variant: 'destructive', title: 'Notice', description: error.message });
+      } else {
+        setMessages(data || []);
+        if (data && data.length > 0) {
+          setSelectedMessage(data[0]);
+        }
+      }
+    } catch (e) {
+      console.warn(e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
+
+  const filteredMessages = useMemo(() => {
+    return messages.filter(m => {
+      const matchesStatus = filterStatus === 'all' || (filterStatus === 'unread' ? m.status === 'unread' : m.status === 'read');
+      const q = searchQuery.toLowerCase().trim();
+      const matchesQuery = !q || 
+        (m.name && m.name.toLowerCase().includes(q)) ||
+        (m.email && m.email.toLowerCase().includes(q)) ||
+        (m.company && m.company.toLowerCase().includes(q)) ||
+        (m.product_interest && m.product_interest.toLowerCase().includes(q)) ||
+        (m.message && m.message.toLowerCase().includes(q));
+      return matchesStatus && matchesQuery;
+    });
+  }, [messages, filterStatus, searchQuery]);
 
   async function handleDelete(id) {
-    if (!confirm('Are you sure you want to delete this message?')) return;
-    const { error } = await supabase.from('contact_messages').delete().eq('id', id);
-    if (error) {
-      toast({ variant: 'destructive', title: 'Error deleting', description: error.message });
-    } else {
-      toast({ title: 'Success', description: 'Message deleted successfully.' });
-      setMessages(messages.filter(m => m.id !== id));
-      if (selectedMessage?.id === id) setSelectedMessage(null);
+    if (!confirm('Are you sure you want to delete this client inquiry?')) return;
+    try {
+      const { error } = await supabase.from('contact_messages').delete().eq('id', id);
+      if (error) {
+        toast({ variant: 'destructive', title: 'Error deleting', description: error.message });
+      } else {
+        toast({ title: 'Success', description: 'Inquiry deleted successfully.' });
+        const updated = messages.filter(m => m.id !== id);
+        setMessages(updated);
+        if (selectedMessage?.id === id) {
+          setSelectedMessage(updated[0] || null);
+        }
+      }
+    } catch (e) {
+      console.warn(e);
     }
   }
 
-  async function handleMarkAsRead(id, currentStatus) {
-    if (currentStatus === 'read') return;
-    
-    const { error } = await supabase
-      .from('contact_messages')
-      .update({ status: 'read' })
-      .eq('id', id);
-      
-    if (error) {
-      toast({ variant: 'destructive', title: 'Error updating status', description: error.message });
-    } else {
-      toast({ title: 'Success', description: 'Message marked as read.' });
-      setMessages(messages.map(m => m.id === id ? { ...m, status: 'read' } : m));
-      if (selectedMessage?.id === id) {
-        setSelectedMessage({ ...selectedMessage, status: 'read' });
+  async function handleToggleStatus(id, currentStatus) {
+    const nextStatus = currentStatus === 'read' ? 'unread' : 'read';
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .update({ status: nextStatus })
+        .eq('id', id);
+        
+      if (error) {
+        toast({ variant: 'destructive', title: 'Error updating status', description: error.message });
+      } else {
+        setMessages(messages.map(m => m.id === id ? { ...m, status: nextStatus } : m));
+        if (selectedMessage?.id === id) {
+          setSelectedMessage({ ...selectedMessage, status: nextStatus });
+        }
       }
+    } catch (e) {
+      console.warn(e);
     }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Manage Inquiries</h1>
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-display font-black tracking-tight text-slate-900">Client Inquiries</h1>
+          <p className="text-sm text-slate-500 flex items-center gap-1.5 mt-1 font-medium">
+            <Inbox className="w-4 h-4 text-[#0284c7]" />
+            Commercial quote requests & product inquiries ({messages.length} total)
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input 
+            placeholder="Search by client name, email, company, or equipment interest..." 
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 text-xs bg-slate-50 border-slate-200"
+          />
+        </div>
+        <div className="flex items-center gap-1.5 w-full sm:w-auto">
+          {['all', 'unread', 'read'].map(status => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-colors ${
+                filterStatus === status 
+                  ? 'bg-[#0284c7] text-white' 
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Messages List */}
-        <div className="lg:col-span-1 border-r border-zinc-200 dark:border-zinc-800 pr-6 overflow-y-auto max-h-[80vh] custom-scrollbar">
+        {/* Messages List (5 Cols) */}
+        <div className="lg:col-span-5 space-y-3 overflow-y-auto max-h-[72vh] custom-scrollbar pr-1">
           {loading ? (
-            <div className="text-zinc-500">Loading messages...</div>
-          ) : messages.length === 0 ? (
-            <div className="text-zinc-500 p-4 border border-dashed border-zinc-300 rounded-lg text-center">No messages found.</div>
+            <div className="text-center py-12 text-slate-400 font-medium">Loading inquiries...</div>
+          ) : filteredMessages.length === 0 ? (
+            <div className="text-slate-400 p-8 border-2 border-dashed border-slate-200 rounded-2xl text-center text-sm font-medium">
+              No inquiries found matching criteria.
+            </div>
           ) : (
-            <div className="space-y-3">
-              {messages.map((msg) => (
+            filteredMessages.map((msg) => {
+              const isSelected = selectedMessage?.id === msg.id;
+              const isUnread = msg.status === 'unread';
+              return (
                 <div 
                   key={msg.id} 
-                  onClick={() => {
-                    setSelectedMessage(msg);
-                    if (msg.status === 'unread') {
-                      handleMarkAsRead(msg.id, msg.status);
-                    }
-                  }}
-                  className={`p-4 rounded-xl cursor-pointer transition-all border ${selectedMessage?.id === msg.id ? 'border-primary bg-primary/5' : 'border-zinc-200 hover:border-primary/30 bg-white'}`}
+                  onClick={() => setSelectedMessage(msg)}
+                  className={`p-4 rounded-2xl cursor-pointer transition-all border ${
+                    isSelected 
+                      ? 'border-[#0284c7] bg-sky-50/50 shadow-xs' 
+                      : 'border-slate-200/80 hover:border-slate-300 bg-white'
+                  }`}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className={`font-semibold ${msg.status === 'unread' ? 'text-zinc-900' : 'text-zinc-600'}`}>
-                      {msg.name}
-                    </h3>
-                    {msg.status === 'unread' && (
-                      <span className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-1"></span>
-                    )}
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <div className="flex items-center gap-2">
+                      {isUnread && (
+                        <span className="w-2 h-2 rounded-full bg-[#0284c7] shrink-0" />
+                      )}
+                      <h3 className={`text-sm ${isUnread ? 'font-black text-slate-900' : 'font-semibold text-slate-700'}`}>
+                        {msg.name}
+                      </h3>
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                      {new Date(msg.created_at || Date.now()).toLocaleDateString()}
+                    </span>
                   </div>
-                  <p className="text-xs text-zinc-500 truncate mb-2">{msg.product_interest}</p>
-                  <p className="text-sm text-zinc-600 line-clamp-2">{msg.message}</p>
-                  <div className="mt-3 text-xs text-zinc-400">
-                    {new Date(msg.created_at).toLocaleDateString()}
-                  </div>
+
+                  {msg.company && (
+                    <div className="text-xs text-slate-500 font-medium mb-1 flex items-center gap-1">
+                      <Building className="w-3 h-3 text-slate-400" /> {msg.company}
+                    </div>
+                  )}
+
+                  {msg.product_interest && (
+                    <div className="inline-block px-2 py-0.5 rounded-md bg-slate-100 text-[10px] font-bold text-[#0284c7] uppercase tracking-wider mb-2">
+                      {msg.product_interest}
+                    </div>
+                  )}
+
+                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                    {msg.message}
+                  </p>
                 </div>
-              ))}
-            </div>
+              );
+            })
           )}
         </div>
 
-        {/* Message Details */}
-        <div className="lg:col-span-2 pl-2">
+        {/* Message Details Pane (7 Cols) */}
+        <div className="lg:col-span-7">
           {selectedMessage ? (
-            <Card className="border-zinc-200 shadow-sm h-full">
-              <CardHeader className="flex flex-row items-start justify-between border-b border-zinc-100 pb-6">
+            <Card className="border-slate-200/90 shadow-sm bg-white rounded-3xl p-6 sm:p-8 space-y-6">
+              
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-6 border-b border-slate-100">
                 <div>
-                  <CardTitle className="text-2xl mb-2">{selectedMessage.name}</CardTitle>
-                  <div className="flex flex-wrap gap-4 text-sm text-zinc-500">
-                    {selectedMessage.company && (
-                      <div className="flex items-center"><Building className="w-4 h-4 mr-1"/> {selectedMessage.company}</div>
-                    )}
-                    <div className="flex items-center"><Mail className="w-4 h-4 mr-1"/> <a href={`mailto:${selectedMessage.email}`} className="text-primary hover:underline">{selectedMessage.email}</a></div>
-                    {selectedMessage.phone && (
-                      <div className="flex items-center"><Phone className="w-4 h-4 mr-1"/> <a href={`tel:${selectedMessage.phone}`} className="text-primary hover:underline">{selectedMessage.phone}</a></div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-2xl font-bold text-slate-900">{selectedMessage.name}</h2>
+                    {selectedMessage.status === 'unread' ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        Unread
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Read
+                      </span>
                     )}
                   </div>
+                  {selectedMessage.company && (
+                    <p className="text-sm font-semibold text-slate-600 flex items-center gap-1.5">
+                      <Building className="w-4 h-4 text-slate-400" /> {selectedMessage.company}
+                    </p>
+                  )}
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleDelete(selectedMessage.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200">
-                    <Trash2 className="w-4 h-4 mr-2" /> Delete
+
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleToggleStatus(selectedMessage.id, selectedMessage.status)}
+                    className="text-xs font-semibold"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                    {selectedMessage.status === 'read' ? 'Mark Unread' : 'Mark Read'}
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleDelete(selectedMessage.id)}
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50 text-xs"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="mb-6 inline-block px-3 py-1 bg-zinc-100 rounded-md text-xs font-semibold text-zinc-600 uppercase tracking-wider">
-                  Interest: {selectedMessage.product_interest}
+              </div>
+
+              {/* Contact Pill Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <a 
+                  href={`mailto:${selectedMessage.email}`}
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-sky-50/50 hover:border-sky-200 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#0284c7] flex items-center justify-center shrink-0">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block text-[10px] font-bold text-slate-400 uppercase">Email</span>
+                    <span className="block text-xs font-bold text-slate-800 truncate">{selectedMessage.email}</span>
+                  </div>
+                </a>
+
+                {selectedMessage.phone ? (
+                  <a 
+                    href={`tel:${selectedMessage.phone}`}
+                    className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-emerald-50/50 hover:border-emerald-200 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                      <Phone className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Phone</span>
+                      <span className="block text-xs font-bold text-slate-800 truncate">{selectedMessage.phone}</span>
+                    </div>
+                  </a>
+                ) : (
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100 opacity-60">
+                    <div className="w-8 h-8 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center shrink-0">
+                      <Phone className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Phone</span>
+                      <span className="block text-xs text-slate-500">Not provided</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Equipment Interest */}
+              {selectedMessage.product_interest && (
+                <div>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    Equipment Inquired
+                  </span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-sky-50 text-[#0284c7] font-bold text-xs border border-sky-100">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    {selectedMessage.product_interest}
+                  </div>
                 </div>
-                
-                <div className="bg-zinc-50 rounded-xl p-6 whitespace-pre-wrap text-zinc-700 leading-relaxed border border-zinc-100">
+              )}
+
+              {/* Inquiry Message Body */}
+              <div>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                  Client Message
+                </span>
+                <div className="p-5 rounded-2xl bg-slate-50/90 border border-slate-200/80 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-sans">
                   {selectedMessage.message}
                 </div>
-                
-                <div className="mt-8 text-xs text-zinc-400 flex items-center">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  Received on {new Date(selectedMessage.created_at).toLocaleString()}
-                </div>
-              </CardContent>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-100">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  Received {new Date(selectedMessage.created_at || Date.now()).toLocaleString()}
+                </span>
+                <a 
+                  href={`mailto:${selectedMessage.email}?subject=Re: Inquiry on ${encodeURIComponent(selectedMessage.product_interest || 'Elanpro Commercial Cooling')}`}
+                  className="inline-flex items-center gap-1.5 font-bold text-[#0284c7] hover:underline"
+                >
+                  Reply via Email <Send className="w-3.5 h-3.5" />
+                </a>
+              </div>
+
             </Card>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-zinc-400 p-12 border-2 border-dashed border-zinc-200 rounded-2xl">
-              <Mail className="w-12 h-12 mb-4 opacity-20" />
-              <p className="text-lg">Select a message to view details</p>
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 p-12 border-2 border-dashed border-slate-200 rounded-3xl min-h-[350px]">
+              <Mail className="w-12 h-12 mb-3 text-slate-300" />
+              <p className="text-base font-semibold text-slate-600">Select an inquiry to view details</p>
+              <p className="text-xs text-slate-400 mt-1">Client messages and quote requests will appear here.</p>
             </div>
           )}
         </div>

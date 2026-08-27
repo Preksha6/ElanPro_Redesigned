@@ -5,7 +5,7 @@ import { Layout } from "@/components/layout/Layout";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import InteractiveFeatureDeck from "@/components/InteractiveFeatureDeck";
+import YouTubeVideoShowcase from "@/components/YouTubeVideoShowcase";
 import CitiesNetwork from "@/components/CitiesNetwork";
 import CinematicHero from "@/components/hero/CinematicHero";
 import AboutReveal from "@/components/AboutReveal";
@@ -232,35 +232,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Core Values / The Elanpro Advantage (BENTO BOX LAYOUT) */}
-      <section className="py-16 bg-slate-50 relative overflow-hidden">
-        {/* Decorative Background Elements */}
-        <div className="absolute top-0 right-0 -mr-[20%] -mt-[10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -ml-[20%] -mb-[10%] w-[50%] h-[50%] rounded-full bg-accent/5 blur-3xl pointer-events-none" />
-
-        <div className="container mx-auto px-4 md:px-8 relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <FadeIn>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm mb-6">
-                <Shield className="w-4 h-4" /> Why Choose Us
-              </div>
-              <h2 className="text-3xl md:text-4xl font-display font-black text-gray-900 mb-6 tracking-tight">
-                The Elanpro <span className="text-primary relative inline-block">Advantage
-                  <svg className="absolute -bottom-2 left-0 w-full h-3 text-accent/30" viewBox="0 0 100 10" preserveAspectRatio="none">
-                    <path d="M0,5 Q50,10 100,5" fill="none" stroke="currentColor" strokeWidth="4" />
-                  </svg>
-                </span>
-              </h2>
-              <p className="text-gray-600 text-lg leading-relaxed">
-                We don't just build refrigerators. We engineer mission-critical cooling ecosystems that industry leaders trust with their most valuable assets.
-              </p>
-            </FadeIn>
-          </div>
-
-          {/* Stacked Feature Deck */}
-          <InteractiveFeatureDeck />
-        </div>
-      </section>
+      {/* Why Choose Us: Official YouTube Video Showcase with Autoplay */}
+      <YouTubeVideoShowcase />
 
       {/* Cities Network Map Section */}
       <CitiesNetwork />

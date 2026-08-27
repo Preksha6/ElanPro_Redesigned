@@ -9,6 +9,7 @@ import Home from '@/pages/Home';
 import Categories from '@/pages/Categories';
 import Catalogues from '@/pages/Catalogues';
 import Products from '@/pages/Products';
+import ProductDetail from '@/pages/ProductDetail';
 import Industries from '@/pages/Industries';
 import Services from '@/pages/Services';
 import Clients from '@/pages/Clients';
@@ -22,6 +23,7 @@ import ManageCategories from '@/pages/admin/ManageCategories';
 import ManageProducts from '@/pages/admin/ManageProducts';
 import ManageIndustries from '@/pages/admin/ManageIndustries';
 import ManageMessages from '@/pages/admin/ManageMessages';
+import ManageClients from '@/pages/admin/ManageClients';
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,8 @@ function Router() {
       <Route path="/categories" component={Categories} />
       <Route path="/catalogues" component={Catalogues} />
       <Route path="/products" component={Products} />
+      <Route path="/products/:id" component={ProductDetail} />
+      <Route path="/product/:id" component={ProductDetail} />
       <Route path="/industries" component={Industries} />
       <Route path="/services" component={Services} />
       <Route path="/clients" component={Clients} />
@@ -75,9 +79,14 @@ function Router() {
           <ManageMessages />
         </AdminLayout>
       </Route>
+      <Route path="/admin/clients">
+        <AdminLayout>
+          <ManageClients />
+        </AdminLayout>
+      </Route>
       <Route component={NotFound} />
-    </Switch>);
-
+    </Switch>
+  );
 }
 
 function App() {
@@ -90,8 +99,8 @@ function App() {
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
-    </QueryClientProvider>);
-
+    </QueryClientProvider>
+  );
 }
 
 export default App;

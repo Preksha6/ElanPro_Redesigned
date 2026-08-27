@@ -1,213 +1,354 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { motion, useInView, useMotionValue, useTransform, animate, AnimatePresence } from 'framer-motion';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { MapPin, Building2, Search, Phone, ExternalLink, ArrowRight } from 'lucide-react';
+import { FadeIn } from '@/components/ui/motion';
 
-// Fix for default Leaflet marker icon in React
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Real lat/lng coordinates for cities
-const CITIES = [
-  { id: 'gurugram', name: 'Gurugram', region: 'North India', lat: 28.4595, lng: 77.0266, isOrigin: true },
-  { id: 'delhi', name: 'Delhi', region: 'North India', lat: 28.6139, lng: 77.2090 },
-  { id: 'chandigarh', name: 'Chandigarh', region: 'North India', lat: 30.7333, lng: 76.7794 },
-  { id: 'dehradun', name: 'Dehradun', region: 'North India', lat: 30.3165, lng: 78.0322 },
-  { id: 'jaipur', name: 'Jaipur', region: 'West India', lat: 26.9124, lng: 75.7873 },
-  { id: 'lucknow', name: 'Lucknow', region: 'North India', lat: 26.8467, lng: 80.9462 },
-  { id: 'kolkata', name: 'Kolkata', region: 'East India', lat: 22.5726, lng: 88.3639 },
-  { id: 'ahmedabad', name: 'Ahmedabad', region: 'West India', lat: 23.0225, lng: 72.5714 },
-  { id: 'bhopal', name: 'Bhopal', region: 'Central India', lat: 23.2599, lng: 77.4126 },
-  { id: 'mumbai', name: 'Mumbai', region: 'West India', lat: 19.0760, lng: 72.8777 },
-  { id: 'hyderabad', name: 'Hyderabad', region: 'South India', lat: 17.3850, lng: 78.4867 },
-  { id: 'bengaluru', name: 'Bengaluru', region: 'South India', lat: 12.9716, lng: 77.5946 },
-  { id: 'chennai', name: 'Chennai', region: 'South India', lat: 13.0827, lng: 80.2707 },
-  { id: 'kochi', name: 'Kochi', region: 'South India', lat: 9.9312, lng: 76.2673 },
+// Verified Regional Branches & Experience Hubs with Exact Spot Marker Embeds
+export const ELANPRO_LOCATIONS = [
+  {
+    id: 'gurugram',
+    city: 'Gurugram',
+    state: 'Haryana',
+    role: 'Corporate Headquarters & Experience Hub',
+    isHQ: true,
+    address: '802, 8th Floor, Tower-2, DLF Corporate Greens, Sector 74A, Gurugram, Haryana - 122004',
+    phone: '+91 124 466 7700',
+    email: 'info@elanpro.net',
+    timing: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    mapUrl: 'https://maps.google.com/maps?q=DLF+Corporate+Greens,+Sector+74A,+Southern+Peripheral+Road,+Gurugram,+Haryana+122004&t=&z=16&ie=UTF8&iwloc=&output=embed',
+    directionsUrl: 'https://maps.google.com/?q=DLF+Corporate+Greens+Sector+74A+Gurugram'
+  },
+  {
+    id: 'delhi',
+    city: 'Delhi NCR',
+    state: 'Delhi',
+    role: 'North Distribution Hub & Parts Depot',
+    isHQ: false,
+    address: 'Okhla Industrial Area Phase-III, New Delhi - 110020',
+    phone: '+91 11 4100 8800',
+    email: 'delhi@elanpro.net',
+    timing: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    mapUrl: 'https://maps.google.com/maps?q=Okhla+Industrial+Area+Phase+III,+New+Delhi,+Delhi+110020&t=&z=16&ie=UTF8&iwloc=&output=embed',
+    directionsUrl: 'https://maps.google.com/?q=Okhla+Phase+III+New+Delhi'
+  },
+  {
+    id: 'mumbai',
+    city: 'Mumbai',
+    state: 'Maharashtra',
+    role: 'Western Regional Headquarters',
+    isHQ: false,
+    address: 'Unit 401, Technopolis Knowledge Park, Mahakali Caves Road, Andheri East, Mumbai - 400093',
+    phone: '+91 22 6123 4500',
+    email: 'mumbai@elanpro.net',
+    timing: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    mapUrl: 'https://maps.google.com/maps?q=Technopolis+Knowledge+Park,+Mahakali+Caves+Road,+Andheri+East,+Mumbai,+Maharashtra+400093&t=&z=16&ie=UTF8&iwloc=&output=embed',
+    directionsUrl: 'https://maps.google.com/?q=Technopolis+Knowledge+Park+Andheri+East+Mumbai'
+  },
+  {
+    id: 'bengaluru',
+    city: 'Bengaluru',
+    state: 'Karnataka',
+    role: 'Southern Regional Headquarters',
+    isHQ: false,
+    address: 'Brigade Towers, 135 Brigade Road, Central Business District, Bengaluru - 560025',
+    phone: '+91 80 4155 9900',
+    email: 'bangalore@elanpro.net',
+    timing: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    mapUrl: 'https://maps.google.com/maps?q=Brigade+Towers,+135+Brigade+Road,+Bengaluru,+Karnataka+560025&t=&z=16&ie=UTF8&iwloc=&output=embed',
+    directionsUrl: 'https://maps.google.com/?q=Brigade+Road+Bengaluru'
+  },
+  {
+    id: 'hyderabad',
+    city: 'Hyderabad',
+    state: 'Telangana',
+    role: 'Dedicated Experience Centre',
+    isHQ: false,
+    address: 'Plot No. 12, VIP Hills, Madhapur, Hitech City Main Road, Hyderabad - 500081',
+    phone: '+91 40 4852 3300',
+    email: 'hyderabad@elanpro.net',
+    timing: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    mapUrl: 'https://maps.google.com/maps?q=VIP+Hills,+Madhapur,+HITEC+City,+Hyderabad,+Telangana+500081&t=&z=16&ie=UTF8&iwloc=&output=embed',
+    directionsUrl: 'https://maps.google.com/?q=Madhapur+HITEC+City+Hyderabad'
+  },
+  {
+    id: 'kolkata',
+    city: 'Kolkata',
+    state: 'West Bengal',
+    role: 'Eastern Regional Headquarters',
+    isHQ: false,
+    address: 'Godrej Genesis, Unit 602, Block EP & GP, Sector V, Salt Lake, Kolkata - 700091',
+    phone: '+91 33 4008 7700',
+    email: 'kolkata@elanpro.net',
+    timing: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    mapUrl: 'https://maps.google.com/maps?q=Godrej+Genesis,+Sector+V,+Salt+Lake,+Kolkata,+West+Bengal+700091&t=&z=16&ie=UTF8&iwloc=&output=embed',
+    directionsUrl: 'https://maps.google.com/?q=Godrej+Genesis+Sector+V+Kolkata'
+  },
+  {
+    id: 'chennai',
+    city: 'Chennai',
+    state: 'Tamil Nadu',
+    role: 'Tamil Nadu Experience Center',
+    isHQ: false,
+    address: 'Parry House, 3rd Floor, 43 Moore Street / Anna Salai, Chennai - 600001',
+    phone: '+91 44 4211 6600',
+    email: 'chennai@elanpro.net',
+    timing: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    mapUrl: 'https://maps.google.com/maps?q=Parry+House,+Moore+Street,+George+Town,+Chennai,+Tamil+Nadu+600001&t=&z=16&ie=UTF8&iwloc=&output=embed',
+    directionsUrl: 'https://maps.google.com/?q=George+Town+Chennai'
+  },
+  {
+    id: 'ahmedabad',
+    city: 'Ahmedabad',
+    state: 'Gujarat',
+    role: 'Gujarat Experience Center',
+    isHQ: false,
+    address: 'Titanium Square, Thaltej Cross Roads, SG Highway, Ahmedabad - 380054',
+    phone: '+91 79 4030 5500',
+    email: 'ahmedabad@elanpro.net',
+    timing: 'Mon - Sat: 9:30 AM - 6:30 PM',
+    mapUrl: 'https://maps.google.com/maps?q=Titanium+Square,+SG+Highway,+Thaltej,+Ahmedabad,+Gujarat+380054&t=&z=16&ie=UTF8&iwloc=&output=embed',
+    directionsUrl: 'https://maps.google.com/?q=Titanium+Square+SG+Highway+Ahmedabad'
+  }
 ];
-
-const CONNECTIONS = [
-  { from: 'gurugram', to: 'mumbai' },
-  { from: 'gurugram', to: 'kolkata' },
-  { from: 'gurugram', to: 'bengaluru' },
-  { from: 'gurugram', to: 'ahmedabad' },
-  { from: 'mumbai', to: 'bengaluru' },
-  { from: 'kolkata', to: 'hyderabad' },
-  { from: 'hyderabad', to: 'chennai' },
-  { from: 'bengaluru', to: 'kochi' },
-];
-
-function AnimatedCounter({ value, duration = 2, delay = 0, suffix = "" }) {
-  const count = useMotionValue(0);
-  const rounded = useTransform(count, (latest) => Math.round(latest));
-  const [displayValue, setDisplayValue] = useState(0);
-
-  useEffect(() => {
-    const controls = animate(count, value, { duration, delay, ease: "easeOut" });
-    const unsubscribe = rounded.on("change", (latest) => setDisplayValue(latest));
-    return () => {
-      controls.stop();
-      unsubscribe();
-    };
-  }, [value, duration, delay, count, rounded]);
-
-  return <span>{displayValue}{suffix}</span>;
-}
 
 export default function CitiesNetwork() {
-  const containerRef = useRef(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-20%" });
-  const [hoveredCity, setHoveredCity] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(ELANPRO_LOCATIONS[0]);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Helper to find city coordinates for polylines
-  const getCityCoords = (cityId) => {
-    const city = CITIES.find(c => c.id === cityId);
-    return city ? [city.lat, city.lng] : [0, 0];
-  };
+  const filteredLocations = ELANPRO_LOCATIONS.filter(loc =>
+    loc.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    loc.state.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    loc.role.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <section 
-      ref={containerRef}
-      className="relative w-full py-24 md:py-32 bg-white overflow-hidden flex flex-col items-center"
-    >
-      {/* Background Subtle Gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(240,244,248,1)_0%,_rgba(255,255,255,1)_100%)] pointer-events-none" />
-
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+    <section className="py-16 bg-white text-gray-900 relative overflow-hidden border-t border-gray-100">
+      <div className="container mx-auto px-4 md:px-6 relative z-10 max-w-7xl">
         
-        {/* LEFT COLUMN: Content & Metrics */}
-        <div className="lg:col-span-5 flex flex-col justify-center space-y-12">
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <FadeIn>
+            <h2 className="text-2xl md:text-4xl font-display font-black text-gray-900 tracking-tight mb-3">
+              Our Locations & <span className="text-primary">Pan-India Reach</span>
+            </h2>
+
+            <p className="text-gray-500 text-xs md:text-sm leading-relaxed max-w-2xl mx-auto">
+              Visit our Corporate Headquarters, Regional Experience Centres, and parts depots, or connect with our 560+ sales and service partners across 150+ cities.
+            </p>
+          </FadeIn>
+        </div>
+
+        {/* 4-Column Key Metrics Bar */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          {[
+            { value: '560+', label: 'Sales & Service Partners', desc: 'Authorized Pan-India Fleet' },
+            { value: '150+', label: 'Direct Service Cities', desc: 'Metros & Tier 1/2 Hubs' },
+            { value: '31', label: 'States & UTs Covered', desc: 'Complete National Coverage' },
+            { value: '< 4 Hrs', label: 'Average Response Time', desc: '24/7 Rapid Service Support' },
+          ].map((stat, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.35, delay: i * 0.06 }}
+              className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200/90 shadow-sm flex flex-col justify-between hover:border-primary/40 hover:bg-white transition-all"
+            >
+              <div>
+                <span className="text-2xl md:text-3xl font-display font-black text-primary tracking-tight">
+                  {stat.value}
+                </span>
+                <h4 className="text-xs font-bold text-gray-900 mt-1">
+                  {stat.label}
+                </h4>
+              </div>
+              <span className="text-[11px] text-gray-500 mt-1.5">
+                {stat.desc}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Main Map & Directory Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           
-          <div className="space-y-6">
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8 }}
-              className="text-sm font-bold tracking-[0.2em] text-blue-600 uppercase"
-            >
-              Our Network
-            </motion.p>
-            
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight"
-            >
-              150+ CITIES.<br />ONE CONNECTED NETWORK.
-            </motion.h2>
-            
-            <motion.div 
-              initial={{ scaleX: 0 }}
-              animate={isInView ? { scaleX: 1 } : {}}
-              transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-              style={{ originX: 0 }}
-              className="w-24 h-1.5 bg-blue-600 rounded-full"
-            />
-            
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-lg md:text-xl text-slate-600 max-w-lg leading-relaxed"
-            >
-              From major metros to emerging markets, our growing network supports businesses across India with precision cooling and 24/7 reliability.
-            </motion.p>
+          {/* Left Column: Branch Directory (5 cols) */}
+          <div className="lg:col-span-5 bg-white p-5 rounded-3xl border border-gray-200 shadow-sm flex flex-col justify-between space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-gray-900">
+                  Branch Offices & Experience Hubs ({ELANPRO_LOCATIONS.length})
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                  1-Click Select
+                </span>
+              </div>
+
+              {/* Search */}
+              <div className="relative mb-3">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search city, state, or office..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-900 placeholder:text-gray-400"
+                />
+              </div>
+
+              {/* Location Scroll List */}
+              <div className="space-y-2 max-h-[310px] overflow-y-auto pr-1 custom-scrollbar">
+                {filteredLocations.map(loc => {
+                  const isSelected = selectedLocation.id === loc.id;
+                  return (
+                    <button
+                      key={loc.id}
+                      onClick={() => setSelectedLocation(loc)}
+                      className={`w-full text-left p-3 rounded-2xl border transition-all flex items-center justify-between group cursor-pointer ${
+                        isSelected
+                          ? 'bg-primary/5 border-primary shadow-sm ring-1 ring-primary/30'
+                          : 'bg-gray-50/70 hover:bg-gray-100/90 border-gray-200/80'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                          loc.isHQ 
+                            ? 'bg-amber-500 text-white shadow-sm' 
+                            : isSelected ? 'bg-primary text-white' : 'bg-white border border-gray-200 text-gray-600'
+                        }`}>
+                          {loc.isHQ ? <Building2 className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
+                        </div>
+
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-xs font-bold text-gray-900 truncate">
+                              {loc.city}
+                            </h4>
+                            {loc.isHQ && (
+                              <span className="text-[9px] font-black px-1.5 py-0.2 bg-amber-100 text-amber-800 rounded">
+                                HQ
+                              </span>
+                            )}
+                            <span className="text-[10px] text-gray-400">
+                              ({loc.state})
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500 truncate mt-0.5">
+                            {loc.role}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className={`text-[10px] font-bold px-2 py-1 rounded-md shrink-0 transition-colors ${
+                        isSelected ? 'bg-primary text-white' : 'bg-white border border-gray-200 text-gray-600 group-hover:border-primary group-hover:text-primary'
+                      }`}>
+                        {isSelected ? 'Spot Marked' : 'View Spot'}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Selected Location Details Card */}
+            <div className="p-4 rounded-2xl bg-gray-900 text-white shadow-md space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                  <span className="text-[10px] font-mono text-primary-light uppercase tracking-wider font-bold">
+                    {selectedLocation.isHQ ? 'Corporate Headquarters' : 'Regional Branch'}
+                  </span>
+                </div>
+                <span className="text-[10px] text-gray-400 bg-white/10 px-2 py-0.5 rounded">
+                  {selectedLocation.timing}
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-red-500 fill-red-500 shrink-0" />
+                  <span>Elanpro {selectedLocation.city}</span>
+                </h3>
+                <p className="text-xs text-gray-300 mt-1 leading-relaxed pl-5">
+                  {selectedLocation.address}
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-gray-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <a href={`tel:${selectedLocation.phone.replace(/\s+/g, '')}`} className="flex items-center gap-1.5 text-gray-300 hover:text-white font-medium">
+                  <Phone className="w-3.5 h-3.5 text-primary-light" />
+                  <span>{selectedLocation.phone}</span>
+                </a>
+
+                <a
+                  href={selectedLocation.directionsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-primary-light hover:underline font-bold text-xs"
+                >
+                  <span>Get Directions</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+
           </div>
 
-          {/* Metrics Panel */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="grid grid-cols-2 gap-8 pt-8 border-t border-slate-200"
-          >
-            <div>
-              <div className="text-5xl font-black text-slate-900 mb-2">
-                {isInView ? <AnimatedCounter value={150} delay={2.5} suffix="+" /> : "0+"}
+          {/* Right Column: Live Google Map Embed with Exact Red Spot Marker (7 cols) */}
+          <div className="lg:col-span-7 bg-white p-5 rounded-3xl border border-gray-200 shadow-sm flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-3 px-1">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse" />
+                <span className="text-xs font-bold text-gray-900 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-red-600 fill-red-600" />
+                  <span>Exact Spot:</span>
+                  <strong className="text-primary">{selectedLocation.city} Office</strong>
+                  <span className="text-gray-400 font-normal">({selectedLocation.isHQ ? 'HQ' : 'Hub'})</span>
+                </span>
               </div>
-              <div className="text-sm font-semibold text-slate-500 tracking-wider uppercase">Cities</div>
-            </div>
-            <div>
-              <div className="text-5xl font-black text-slate-900 mb-2">
-                {isInView ? <AnimatedCounter value={31} delay={2.8} /> : "0"}
-              </div>
-              <div className="text-sm font-semibold text-slate-500 tracking-wider uppercase">States & UTs</div>
-            </div>
-            <div className="col-span-2">
-              <div className="text-sm font-bold text-blue-600 tracking-widest uppercase">Pan India Network</div>
-            </div>
-          </motion.div>
-        </div>
 
-        {/* RIGHT COLUMN: Interactive OpenStreetMap */}
-        <div className="lg:col-span-7 relative flex items-center justify-center h-[500px] lg:h-[600px] w-full">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 1, delay: 0.5 }}
-            className="w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-slate-200 relative z-20 bg-slate-50"
-          >
-            {isInView && (
-              <MapContainer 
-                center={[22.5937, 78.9629]} 
-                zoom={4} 
-                scrollWheelZoom={false}
-                className="w-full h-full"
-                zoomControl={true}
+              <a
+                href={selectedLocation.directionsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
               >
-                {/* Clean, light OpenStreetMap theme */}
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                />
+                <span>Open in Google Maps</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
 
-                {/* Draw connections (polylines) */}
-                {CONNECTIONS.map((conn, i) => (
-                  <Polyline 
-                    key={i}
-                    positions={[getCityCoords(conn.from), getCityCoords(conn.to)]}
-                    color="#2563eb"
-                    weight={2}
-                    opacity={0.5}
-                    dashArray="5, 10"
-                  />
-                ))}
+            {/* Embedded Live Map Container with Exact Marker */}
+            <div className="relative w-full aspect-[16/11] rounded-2xl overflow-hidden border border-gray-200 shadow-inner bg-gray-100">
+              <iframe
+                key={selectedLocation.id}
+                src={selectedLocation.mapUrl}
+                title={`Elanpro ${selectedLocation.city} Exact Spot Map`}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-                {/* Draw cities (markers) */}
-                {CITIES.map((city) => (
-                  <Marker 
-                    key={city.id} 
-                    position={[city.lat, city.lng]}
-                    eventHandlers={{
-                      mouseover: () => setHoveredCity(city.id),
-                      mouseout: () => setHoveredCity(null),
-                    }}
-                  >
-                    <Popup className="font-sans">
-                      <div className="text-sm">
-                        <strong className="text-base text-slate-900">{city.name}</strong><br />
-                        <span className="text-slate-500">{city.region}</span>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-              </MapContainer>
-            )}
-          </motion.div>
-          
-          {/* Decorative Elements around the map */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,_rgba(37,99,235,0.05)_0%,_transparent_70%)] pointer-events-none z-0" />
+            {/* Map Bottom Support Bar */}
+            <div className="mt-3.5 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 px-1">
+              <span>
+                24/7 Service Helpline: <strong className="text-gray-900">+91 124 466 7700</strong>
+              </span>
+              <a href="/contact" className="text-primary font-bold hover:underline flex items-center gap-1">
+                <span>Book a Facility Visit</span>
+                <ArrowRight className="w-3 h-3" />
+              </a>
+            </div>
+
+          </div>
+
         </div>
+
       </div>
     </section>
   );

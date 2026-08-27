@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import logo from "@/assets/elanpro-logo.png";
+import logo from "@/assets/elanpro-logo-white.png";
 import { Facebook, Twitter, Linkedin, Instagram, Mail, Phone, MapPin, Youtube } from "lucide-react";
 
 export function Footer() {
