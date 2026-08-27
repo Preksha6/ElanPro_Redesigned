@@ -241,6 +241,7 @@ export default function Categories() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const searchParam = params.get("search") || params.get("q");
     const catParam = params.get("category") || params.get("cat") || params.get("c");
 
     if (searchParam) {
