@@ -241,14 +241,19 @@ export default function Categories() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const searchParam = params.get("search");
-    const catParam = params.get("category");
+    const catParam = params.get("category") || params.get("cat") || params.get("c");
 
     if (searchParam) {
       setSearchTerm(searchParam);
     }
     if (catParam) {
-      const match = CATEGORY_DEFINITIONS.find(c => c.id === catParam || c.name.toLowerCase() === catParam.toLowerCase());
+      const cleanCat = decodeURIComponent(catParam).toLowerCase().trim();
+      const match = CATEGORY_DEFINITIONS.find(c => 
+        c.id.toLowerCase() === cleanCat || 
+        c.name.toLowerCase() === cleanCat ||
+        c.id.replace(/-/g, ' ') === cleanCat ||
+        cleanCat.includes(c.name.toLowerCase())
+      );
       if (match) {
         setSelectedCategory(match.id);
       }
