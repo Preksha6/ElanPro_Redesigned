@@ -502,9 +502,14 @@ export async function saveProductToDB(productPayload) {
 
   // 2. Persist to Supabase Database
   try {
-    await supabase.from('products').upsert(formatted);
+    const { error } = await supabase.from('products').upsert(formatted);
+    if (error) {
+      console.error("Supabase upsert error:", error);
+      return { success: false, error: error.message };
+    }
   } catch (err) {
-    console.warn("Supabase upsert error:", err);
+    console.warn("Supabase upsert exception:", err);
+    return { success: false, error: err.message };
   }
 
   return { success: true, product: formatted };
@@ -536,11 +541,16 @@ export async function deleteProductFromDB(productId, modelName) {
     }
   }
 
-  // 2. Delete from Supabase Database
+  // 2. Persist deletion to Supabase Database
   try {
-    await supabase.from('products').delete().eq('id', productId);
+    const { error } = await supabase.from('products').delete().eq('id', productId);
+    if (error) {
+      console.error("Supabase delete error:", error);
+      return { success: false, error: error.message };
+    }
   } catch (err) {
-    console.warn("Supabase delete error:", err);
+    console.warn("Supabase database delete exception:", err);
+    return { success: false, error: err.message };
   }
 
   return { success: true };
