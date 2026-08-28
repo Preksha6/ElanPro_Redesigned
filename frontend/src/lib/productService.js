@@ -1,34 +1,33 @@
 /**
  * Returns a guaranteed valid image URL for any product
  */
+const SUPABASE_STORAGE_BASE = "https://lfshnugnjjbibrosqtke.supabase.co/storage/v1/object/public/products";
+
 export function getProductImage(product) {
-  if (!product) return '/product-images/image1.png';
+  if (!product) return `${SUPABASE_STORAGE_BASE}/image1.png`;
   let img = String(product.image || '').trim();
   
-  // If it matches imageX.png (from Supabase URL or local path)
-  const matchPng = img.match(/image(\d+)\.png/i);
-  if (matchPng) {
-    return `/product-images/image${matchPng[1]}.png`;
+  // If the image already contains the supabase domain, use it directly
+  if (img.includes('supabase.co/storage/v1/object/public/products/')) {
+    return img;
   }
-
-  // If it's an external CDN or official media URL (non-broken)
-  if (img.startsWith('http') && !img.includes('supabase.co/storage')) {
+  
+  // If it's an external CDN or official media URL
+  if (img.startsWith('http')) {
     return img;
   }
 
+  // If it matches imageX.png
+  const matchPng = img.match(/image(\d+)\.png/i);
+  if (matchPng) {
+    return `${SUPABASE_STORAGE_BASE}/image${matchPng[1]}.png`;
+  }
+
   // If empty, null, or placeholder, assign deterministically
-  if (!img || img === 'None' || img === 'null' || img.includes('placeholder')) {
-    const key = normalizeModelKey(product.model || product.name || product.id);
-    const hash = key.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const imgIdx = (hash % 31) + 1;
-    return `/product-images/image${imgIdx}.png`;
-  }
-
-  if (!img.startsWith('/')) {
-    return '/' + img;
-  }
-
-  return img;
+  const key = normalizeModelKey(product.model || product.name || product.id || '');
+  const hash = key.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const imgIdx = ((hash || 1) % 31) + 1;
+  return `${SUPABASE_STORAGE_BASE}/image${imgIdx}.png`;
 }
 
 import { supabase } from '@/lib/supabase';
@@ -298,18 +297,13 @@ export function formatProductFromDB(row) {
     category = "Retail Refrigeration";
   }
 
-  // 6. Product Image URL from database record (with reliable fallback)
-  let image = row.image;
-  const normKey = normalizeModelKey(model || title);
-  const hash = normKey.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const imgIdx = (hash % 31) + 1;
-  const fallbackImg = `/product-images/image${imgIdx}.png`;
-
-  if (!image || image === "null" || image.includes("placeholder")) {
-    image = fallbackImg;
-  } else if (!image.startsWith("http") && !image.startsWith("/")) {
-    image = "/" + image;
-  }
+  // 6. Product Image URL from database record (guaranteed valid image)
+  let image = getProductImage({
+    id: rawId,
+    name: title,
+    model: model,
+    image: row.image
+  });
 
   // 7. Descriptive overview - clean natural formatting
   let description = row.description;

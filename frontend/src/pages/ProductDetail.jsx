@@ -237,8 +237,12 @@ export default function ProductDetail() {
                   </div>
 
                   <img 
-                    src={product.image} 
+                    src={getProductImage(product)} 
                     alt={product.name} 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://lfshnugnjjbibrosqtke.supabase.co/storage/v1/object/public/products/image1.png';
+                    }}
                     className="w-full h-auto max-h-[380px] object-contain mix-blend-multiply drop-shadow-2xl transition-transform duration-700 ease-out group-hover:scale-105 my-auto"
                   />
 

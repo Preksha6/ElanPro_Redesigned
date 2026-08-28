@@ -35,7 +35,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import heroProductsImg from "@/assets/hero-products-lineup.jpg";
-import { getProductsFromDB, formatCleanDimensions, formatCleanTemp } from "@/lib/productService";
+import { getProductsFromDB, formatCleanDimensions, formatCleanTemp, getProductImage } from "@/lib/productService";
 
 const CATEGORY_DEFINITIONS = [
   {
@@ -855,11 +855,11 @@ export default function Categories() {
                               >
                                 <div className="h-56 bg-[#f8fafc] relative flex items-center justify-center p-6 border-b border-slate-100 overflow-hidden">
                                   <img 
-                                    src={product.image || '/product-images/image1.png'} 
+                                    src={getProductImage(product)} 
                                     alt={product.name} 
                                     onError={(e) => {
                                       e.currentTarget.onerror = null;
-                                      e.currentTarget.src = '/product-images/image1.png';
+                                      e.currentTarget.src = 'https://lfshnugnjjbibrosqtke.supabase.co/storage/v1/object/public/products/image1.png';
                                     }}
                                     className="object-contain w-full h-full mix-blend-multiply group-hover:scale-108 transition-transform duration-500 ease-out" 
                                   />

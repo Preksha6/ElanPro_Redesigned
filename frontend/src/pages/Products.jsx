@@ -4,7 +4,7 @@ import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Ruler, Layers, ThermometerSnowflake, Sparkles, Loader2 } from "lucide-react";
 import { Link } from "wouter";
-import { getProductsFromDB } from "@/lib/productService";
+import { getProductsFromDB, getProductImage } from "@/lib/productService";
 
 export default function Products() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -115,7 +115,7 @@ export default function Products() {
                         {/* Image Area */}
                         <div className="relative h-60 overflow-hidden bg-[#f8fafc] shrink-0 p-6 flex items-center justify-center border-b border-slate-100">
                           <img
-                            src={product.image}
+                            src={getProductImage(product)}
                             alt={product.name}
                             className="w-full h-full object-contain mix-blend-multiply group-hover:scale-108 transition-transform duration-500 ease-out" 
                           />
