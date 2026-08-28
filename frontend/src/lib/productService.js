@@ -139,16 +139,7 @@ export function formatCleanTemp(rawTemp) {
  * Checks if a name or model is an invalid parsing artifact
  */
 export function isInvalidProduct(name, model, id) {
-  const check = `${name || ''} ${model || ''} ${id || ''}`.toLowerCase();
-  if (
-    check.includes("attribute") ||
-    check.includes("key features") ||
-    check.includes("photo") ||
-    check.includes("working") ||
-    check.includes("particulars") ||
-    check.includes("descriptions") ||
-    !name || String(name).trim().length === 0
-  ) {
+  if (!name || String(name).trim().length === 0) {
     return true;
   }
   return false;
