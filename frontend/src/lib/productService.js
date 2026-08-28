@@ -334,33 +334,26 @@ export function formatProductFromDB(row) {
 }
 
 /**
- * Deduplicates product arrays by Model and ID
+ * Deduplicates product arrays by ID only (allows same model names)
  */
 export function deduplicateProducts(productsList) {
   if (!Array.isArray(productsList)) return [];
 
-  const seenModelKeys = new Set();
   const seenIds = new Set();
   const uniqueList = [];
 
   for (const product of productsList) {
     if (!product) continue;
-
-    const normModel = normalizeModelKey(product.model || product.name);
     const normId = String(product.id || "").toLowerCase().trim();
 
     if (isInvalidProduct(product.name, product.model, product.id)) {
       continue;
     }
 
-    if (normModel && seenModelKeys.has(normModel)) {
-      continue;
-    }
     if (normId && seenIds.has(normId)) {
       continue;
     }
 
-    if (normModel) seenModelKeys.add(normModel);
     if (normId) seenIds.add(normId);
 
     uniqueList.push(product);

@@ -256,7 +256,9 @@ export default function ManageProducts() {
     let generatedId = formData.id;
     if (!generatedId) {
       const slugBase = `${formData.subcategory || formData.category}-${formData.model || formData.name}`.toLowerCase();
-      generatedId = slugBase.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const cleanSlug = slugBase.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      // Append a unique random string to ensure it doesn't overwrite existing products with same name
+      generatedId = `${cleanSlug}-${Math.random().toString(36).substring(2, 8)}`;
     }
 
     const payload = {
