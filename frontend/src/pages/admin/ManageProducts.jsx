@@ -61,7 +61,7 @@ const STANDARD_SPEC_KEYS = [
 ];
 
 // All 31 extracted high-resolution product photography assets
-const CATALOGUE_IMAGES = Array.from({ length: 31 }, (_, i) => `/product-images/image${i + 1}.png`);
+const CATALOGUE_IMAGES = Array.from({ length: 31 }, (_, i) => `https://lfshnugnjjbibrosqtke.supabase.co/storage/v1/object/public/products/image${i + 1}.png`);
 
 export default function ManageProducts() {
   const [products, setProducts] = useState([]);
@@ -84,7 +84,7 @@ export default function ManageProducts() {
     dimensions: '',
     description: '',
     badge: '',
-    image: '/product-images/image1.png',
+    image: 'https://lfshnugnjjbibrosqtke.supabase.co/storage/v1/object/public/products/image1.png',
     featuresText: '',
     specsList: [] // [{ key: '', value: '' }]
   });
@@ -580,7 +580,7 @@ export default function ManageProducts() {
                           src={formData.image} 
                           alt="Product Preview" 
                           className="w-full h-full object-contain"
-                          onError={(e) => { e.target.src = '/product-images/image1.png'; }}
+                          onError={(e) => { e.target.src = 'https://lfshnugnjjbibrosqtke.supabase.co/storage/v1/object/public/products/image1.png'; }}
                         />
                       ) : (
                         <div className="text-slate-300 flex flex-col items-center gap-1">
