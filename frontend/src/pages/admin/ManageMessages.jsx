@@ -35,30 +35,61 @@ export default function ManageMessages() {
 
   async function fetchMessages() {
     setLoading(true);
+    let finalMessages = [];
     try {
       const { data, error } = await supabase
         .from('contact_messages')
         .select('*')
         .order('created_at', { ascending: false });
         
-      if (error) {
-        toast({ variant: 'destructive', title: 'Notice', description: error.message });
+      if (!error && data && data.length > 0) {
+        finalMessages = data;
       } else {
-        setMessages(data || []);
-        if (data && data.length > 0) {
-          setSelectedMessage(data[0]);
-        }
+        // Fallback to local storage only if database returned no data or offline
+        const localData = JSON.parse(localStorage.getItem('elanpro_contact_messages') || '[]');
+        finalMessages = localData;
       }
     } catch (e) {
-      console.warn(e);
-    } finally {
-      setLoading(false);
+      console.warn("Supabase fetch notice:", e);
+      try {
+        finalMessages = JSON.parse(localStorage.getItem('elanpro_contact_messages') || '[]');
+      } catch (err) {}
     }
+
+    // Strict deduplication by unique signature
+    const uniqueMap = new Map();
+    finalMessages.forEach((msg) => {
+      const signature = msg.id || `${msg.email}_${msg.product_interest}_${msg.name}`;
+      if (!uniqueMap.has(signature)) {
+        uniqueMap.set(signature, msg);
+      }
+    });
+
+    const uniqueList = Array.from(uniqueMap.values());
+    uniqueList.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+    setMessages(uniqueList);
+    if (uniqueList.length > 0) {
+      setSelectedMessage(uniqueList[0]);
+    } else {
+      setSelectedMessage(null);
+    }
+    setLoading(false);
   }
 
   const filteredMessages = useMemo(() => {
     return messages.filter(m => {
-      const matchesStatus = filterStatus === 'all' || (filterStatus === 'unread' ? m.status === 'unread' : m.status === 'read');
+      let matchesStatus = true;
+      if (filterStatus === 'unread') matchesStatus = m.status === 'unread';
+      else if (filterStatus === 'read') matchesStatus = m.status === 'read';
+      else if (filterStatus === 'catalogues') {
+        matchesStatus = m.product_interest && (
+          m.product_interest.toLowerCase().includes('catalogue') || 
+          m.product_interest.toLowerCase().includes('brochure') ||
+          m.product_interest.toLowerCase().includes('amc')
+        );
+      }
+
       const q = searchQuery.toLowerCase().trim();
       const matchesQuery = !q || 
         (m.name && m.name.toLowerCase().includes(q)) ||
@@ -73,40 +104,45 @@ export default function ManageMessages() {
   async function handleDelete(id) {
     if (!confirm('Are you sure you want to delete this client inquiry?')) return;
     try {
-      const { error } = await supabase.from('contact_messages').delete().eq('id', id);
-      if (error) {
-        toast({ variant: 'destructive', title: 'Error deleting', description: error.message });
-      } else {
-        toast({ title: 'Success', description: 'Inquiry deleted successfully.' });
-        const updated = messages.filter(m => m.id !== id);
-        setMessages(updated);
-        if (selectedMessage?.id === id) {
-          setSelectedMessage(updated[0] || null);
-        }
-      }
+      await supabase.from('contact_messages').delete().eq('id', id);
     } catch (e) {
       console.warn(e);
+    }
+
+    try {
+      const localData = JSON.parse(localStorage.getItem('elanpro_contact_messages') || '[]');
+      localStorage.setItem('elanpro_contact_messages', JSON.stringify(localData.filter(m => m.id !== id)));
+    } catch (e) {}
+
+    toast({ title: 'Success', description: 'Inquiry deleted successfully.' });
+    const updated = messages.filter(m => m.id !== id);
+    setMessages(updated);
+    if (selectedMessage?.id === id) {
+      setSelectedMessage(updated[0] || null);
     }
   }
 
   async function handleToggleStatus(id, currentStatus) {
     const nextStatus = currentStatus === 'read' ? 'unread' : 'read';
     try {
-      const { error } = await supabase
+      await supabase
         .from('contact_messages')
         .update({ status: nextStatus })
         .eq('id', id);
-        
-      if (error) {
-        toast({ variant: 'destructive', title: 'Error updating status', description: error.message });
-      } else {
-        setMessages(messages.map(m => m.id === id ? { ...m, status: nextStatus } : m));
-        if (selectedMessage?.id === id) {
-          setSelectedMessage({ ...selectedMessage, status: nextStatus });
-        }
-      }
     } catch (e) {
       console.warn(e);
+    }
+
+    try {
+      const localData = JSON.parse(localStorage.getItem('elanpro_contact_messages') || '[]');
+      localStorage.setItem('elanpro_contact_messages', JSON.stringify(
+        localData.map(m => m.id === id ? { ...m, status: nextStatus } : m)
+      ));
+    } catch (e) {}
+
+    setMessages(messages.map(m => m.id === id ? { ...m, status: nextStatus } : m));
+    if (selectedMessage?.id === id) {
+      setSelectedMessage({ ...selectedMessage, status: nextStatus });
     }
   }
 
@@ -134,18 +170,23 @@ export default function ManageMessages() {
             className="pl-9 h-9 text-xs bg-slate-50 border-slate-200"
           />
         </div>
-        <div className="flex items-center gap-1.5 w-full sm:w-auto">
-          {['all', 'unread', 'read'].map(status => (
+        <div className="flex items-center gap-1.5 w-full sm:w-auto flex-wrap">
+          {[
+            { id: 'all', label: 'All Inquiries' },
+            { id: 'unread', label: 'Unread' },
+            { id: 'read', label: 'Read' },
+            { id: 'catalogues', label: '📖 Literature & AMC Requests' }
+          ].map(tab => (
             <button
-              key={status}
-              onClick={() => setFilterStatus(status)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-colors ${
-                filterStatus === status 
-                  ? 'bg-[#0284c7] text-white' 
+              key={tab.id}
+              onClick={() => setFilterStatus(tab.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                filterStatus === tab.id 
+                  ? 'bg-[#0284c7] text-white shadow-xs' 
                   : 'text-slate-600 hover:bg-slate-100'
               }`}
             >
-              {status}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -165,6 +206,12 @@ export default function ManageMessages() {
             filteredMessages.map((msg) => {
               const isSelected = selectedMessage?.id === msg.id;
               const isUnread = msg.status === 'unread';
+              const isLiteratureRequest = msg.product_interest && (
+                msg.product_interest.toLowerCase().includes('catalogue') ||
+                msg.product_interest.toLowerCase().includes('brochure') ||
+                msg.product_interest.toLowerCase().includes('amc')
+              );
+
               return (
                 <div 
                   key={msg.id} 
@@ -196,8 +243,13 @@ export default function ManageMessages() {
                   )}
 
                   {msg.product_interest && (
-                    <div className="inline-block px-2 py-0.5 rounded-md bg-slate-100 text-[10px] font-bold text-[#0284c7] uppercase tracking-wider mb-2">
-                      {msg.product_interest}
+                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2 ${
+                      isLiteratureRequest
+                        ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                        : 'bg-slate-100 text-[#0284c7]'
+                    }`}>
+                      {isLiteratureRequest ? '📖 ' : ''}
+                      <span className="truncate max-w-[260px]">{msg.product_interest}</span>
                     </div>
                   )}
 

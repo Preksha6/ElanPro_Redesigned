@@ -65,35 +65,22 @@ const CTA_DROPDOWN_OPTIONS = [
   }
 ];
 
-// Official Categories matching elanpro.net
-const CATEGORIES_DROPDOWN = [
-  { name: "Professional Kitchen", path: "/categories?cat=Professional%20Kitchen" },
-  { name: "Confectionery Showcase", path: "/categories?cat=Confectionery%20Showcase" },
-  { name: "Retail & Supermarket", path: "/categories?cat=Super%20Market" },
-  { name: "Beverage & Bar Refrigeration", path: "/categories?cat=Beverage" },
-  { name: "Ice Machine & Flakers", path: "/categories?cat=Ice%20Machine%20/%20Flakers" },
-  { name: "Mini Bar & Mini Fridge", path: "/categories?cat=Mini%20Bar%20&%20Mini%20Fridge" },
-  { name: "Cold Room Solutions", path: "/categories?cat=Cold%20Room" },
-  { name: "Pharma Refrigeration", path: "/categories?cat=Pharma" },
-  { name: "Water Coolers & Dispensers", path: "/categories?cat=Water%20Cooler" },
-  { name: "Vending Machine Solutions", path: "/categories?cat=Vending%20Solutions" }
-];
-
 // Official About Sub-items matching elanpro.net
 const ABOUT_DROPDOWN = [
-  { name: "Company Overview", path: "/about" },
-  { name: "Mission, Vision, and Values", path: "/about" },
-  { name: "Our Journey", path: "/about" },
-  { name: "Our Strength", path: "/about" },
-  { name: "Our Value Proposition", path: "/about" },
-  { name: "Our Management", path: "/about" },
+  { name: "Company Overview", path: "/company-overview" },
+  { name: "Mission, Vision, and Values", path: "/mission-vision-values" },
+  { name: "Our Journey", path: "/our-journey" },
+  { name: "Our Strength", path: "/our-strength" },
+  { name: "Our Value Proposition", path: "/our-value-proposition" },
+  { name: "Our Management", path: "/our-management" },
 ];
 
 // Official CSR & Media Dropdown matching elanpro.net
 const CSR_MEDIA_DROPDOWN = [
-  { name: "CSR Policy", path: "/about" },
-  { name: "Annual Return Policy", path: "/about" },
-  { name: "Media & Blogs", path: "/about" },
+  { name: "CSR Policy", path: "/csr-policy" },
+  { name: "Annual Return Policy", path: "/annual-return-policy" },
+  { name: "Media & Blogs", path: "/media-blogs" },
+  { name: "Gallery", path: "/gallery" },
   { name: "Aahar Expo Experience", path: "https://tours.view360degrees.com/Elan-aahar/", isExternal: true },
 ];
 
@@ -104,9 +91,8 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   
   // Dropdown states
-  const [activeDropdown, setActiveDropdown] = useState(null); // 'cta', 'categories', 'about', 'csrmedia', 'tours'
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'cta', 'about', 'csrmedia', 'tours'
   const [mobileCtaOpen, setMobileCtaOpen] = useState(false);
-  const [mobileCatOpen, setMobileCatOpen] = useState(false);
   const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
   const [mobileCsrOpen, setMobileCsrOpen] = useState(false);
 
@@ -144,8 +130,22 @@ export function Header() {
     }
   };
 
-  const darkNavPages = ["/", "/clients", "/industries", "/services", "/about"];
-  const useWhiteText = !isScrolled && darkNavPages.includes(location);
+  const darkNavPages = [
+    "/", "/clients", "/industries", "/services", "/about",
+    "/company-overview", "/mission-vision-values", "/our-journey",
+    "/our-strength", "/our-value-proposition", "/our-management",
+    "/csr-policy", "/csr", "/annual-return-policy", "/annual-return", "/annual-returns",
+    "/media-blogs", "/media", "/blogs", "/blog", "/catalogues", "/gallery"
+  ];
+  const useWhiteText = !isScrolled && (
+    darkNavPages.includes(location) || 
+    location.startsWith("/about/") || 
+    location.startsWith("/blog/") || 
+    location.startsWith("/blogs/") || 
+    location.startsWith("/media-blogs/")
+  );
+  const isAboutActive = location === '/about' || ABOUT_DROPDOWN.some(item => location === item.path || location.startsWith('/about/'));
+  const isCsrMediaActive = CSR_MEDIA_DROPDOWN.some(item => !item.isExternal && location === item.path) || ['/csr', '/annual-return', '/blogs', '/media', '/blog', '/gallery'].includes(location) || location.startsWith('/blog/') || location.startsWith('/media-blogs/');
 
   return (
     <header className="fixed top-0 w-full z-50 transition-all duration-300" ref={headerRef}>
@@ -191,7 +191,7 @@ export function Header() {
             <Link
               href="/about"
               className={`text-sm font-semibold tracking-wide transition-colors flex items-center gap-1 py-1.5 ${
-                location === '/about' 
+                isAboutActive 
                   ? "text-accent" 
                   : useWhiteText ? "text-white/90 hover:text-white" : "text-primary hover:text-accent"
               }`}
@@ -226,62 +226,17 @@ export function Header() {
             </AnimatePresence>
           </div>
 
-          {/* Our Products Dropdown with Real Site Categories */}
-          <div 
-            className="relative"
-            onMouseEnter={() => setActiveDropdown('categories')}
-            onMouseLeave={() => setActiveDropdown(null)}
+          {/* Our Products Direct Link (No dropdown) */}
+          <Link
+            href="/categories"
+            className={`text-sm font-semibold tracking-wide transition-colors ${
+              location === '/categories' || location.startsWith('/products')
+                ? "text-accent" 
+                : useWhiteText ? "text-white/90 hover:text-white" : "text-primary hover:text-accent"
+            }`}
           >
-            <Link
-              href="/categories"
-              className={`text-sm font-semibold tracking-wide transition-colors flex items-center gap-1 py-1.5 ${
-                location === '/categories' 
-                  ? "text-accent" 
-                  : useWhiteText ? "text-white/90 hover:text-white" : "text-primary hover:text-accent"
-              }`}
-            >
-              <span>Our Products</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${activeDropdown === 'categories' ? 'rotate-180' : ''}`} />
-            </Link>
-
-            <AnimatePresence>
-              {activeDropdown === 'categories' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 4, scale: 0.97 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute left-0 top-full mt-1 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2.5 z-50"
-                >
-                  <div className="px-2 py-1 mb-1 border-b border-gray-100 flex items-center justify-between text-[10px] font-bold uppercase text-gray-400">
-                    <span>Commercial Segments</span>
-                    <span className="text-primary font-bold">100+ Models</span>
-                  </div>
-                  <div className="space-y-0.5 max-h-72 overflow-y-auto custom-scrollbar">
-                    {CATEGORIES_DROPDOWN.map((cat, idx) => (
-                      <Link
-                        key={idx}
-                        href={cat.path}
-                        onClick={() => setActiveDropdown(null)}
-                        className="block px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-primary/5 hover:text-primary rounded-xl transition-colors"
-                      >
-                        {cat.name}
-                      </Link>
-                    ))}
-                  </div>
-                  <div className="pt-2 mt-1 border-t border-gray-100">
-                    <Link
-                      href="/categories"
-                      onClick={() => setActiveDropdown(null)}
-                      className="block text-center text-xs font-bold text-primary hover:underline py-1"
-                    >
-                      View All Product Categories →
-                    </Link>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+            Our Products
+          </Link>
 
           <Link
             href="/catalogues"
@@ -335,7 +290,9 @@ export function Header() {
           >
             <button
               className={`text-sm font-semibold tracking-wide transition-colors flex items-center gap-1 py-1.5 cursor-pointer ${
-                useWhiteText ? "text-white/90 hover:text-white" : "text-primary hover:text-accent"
+                isCsrMediaActive
+                  ? "text-accent"
+                  : useWhiteText ? "text-white/90 hover:text-white" : "text-primary hover:text-accent"
               }`}
             >
               <span>CSR & Media</span>
@@ -654,30 +611,15 @@ export function Header() {
             )}
           </div>
 
-          {/* Mobile Categories Accordion */}
-          <div className="border border-gray-100 rounded-xl p-1 bg-gray-50/60">
-            <button
-              onClick={() => setMobileCatOpen(!mobileCatOpen)}
-              className="w-full flex items-center justify-between p-2 text-sm font-semibold text-gray-700"
-            >
-              <span>Our Products & Segments</span>
-              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${mobileCatOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {mobileCatOpen && (
-              <div className="space-y-1 pt-1 border-t border-gray-200/60 pl-2 max-h-48 overflow-y-auto">
-                {CATEGORIES_DROPDOWN.map((cat, idx) => (
-                  <Link
-                    key={idx}
-                    href={cat.path}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block p-1.5 text-xs text-gray-600 hover:text-primary"
-                  >
-                    {cat.name}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+          <Link
+            href="/categories"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`block p-2.5 rounded-xl text-sm font-semibold ${
+              location === '/categories' || location.startsWith('/products') ? "bg-primary/5 text-primary" : "text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            Our Products
+          </Link>
 
           <Link
             href="/catalogues"

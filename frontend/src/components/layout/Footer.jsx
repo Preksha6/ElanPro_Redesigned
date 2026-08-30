@@ -36,13 +36,14 @@ export function Footer() {
 
           {/* Links Col 1 */}
           <div>
-            <h4 className="text-white font-display font-semibold text-lg mb-6">Quick Links</h4>
-            <ul className="flex flex-col gap-3">
-              <li><Link href="/" className="hover:text-white transition-colors cursor-pointer">Home</Link></li>
-              <li><Link href="/about" className="hover:text-white transition-colors cursor-pointer">About Us</Link></li>
-              <li><Link href="/services" className="hover:text-white transition-colors cursor-pointer">Services & Support</Link></li>
-              <li><Link href="/industries" className="hover:text-white transition-colors cursor-pointer">Industries</Link></li>
-              <li><Link href="/contact" className="hover:text-white transition-colors cursor-pointer">Contact Us</Link></li>
+            <h4 className="text-white font-display font-semibold text-lg mb-6">About Elanpro</h4>
+            <ul className="flex flex-col gap-2.5 text-sm">
+              <li><Link href="/company-overview" className="hover:text-white transition-colors cursor-pointer">Company Overview</Link></li>
+              <li><Link href="/mission-vision-values" className="hover:text-white transition-colors cursor-pointer">Mission, Vision & Values</Link></li>
+              <li><Link href="/our-journey" className="hover:text-white transition-colors cursor-pointer">Our Journey</Link></li>
+              <li><Link href="/our-strength" className="hover:text-white transition-colors cursor-pointer">Our Strength</Link></li>
+              <li><Link href="/our-value-proposition" className="hover:text-white transition-colors cursor-pointer">Value Proposition</Link></li>
+              <li><Link href="/our-management" className="hover:text-white transition-colors cursor-pointer">Our Management</Link></li>
             </ul>
           </div>
 
@@ -90,7 +91,11 @@ export function Footer() {
 
         <div className="pt-8 border-t border-gray-800 text-sm text-gray-500 flex flex-col md:flex-row justify-between items-center gap-4">
           <p>Copyright &copy; elanpro.net {new Date().getFullYear()}. All rights reserved.</p>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-4 md:gap-6">
+            <Link href="/csr-policy" className="hover:text-white transition-colors">CSR Policy</Link>
+            <Link href="/annual-return-policy" className="hover:text-white transition-colors">Annual Returns</Link>
+            <Link href="/media-blogs" className="hover:text-white transition-colors">Media & Blogs</Link>
+            <Link href="/gallery" className="hover:text-white transition-colors">Gallery</Link>
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
           </div>

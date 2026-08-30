@@ -106,10 +106,10 @@ export default function ManageProducts() {
     setLoading(true);
     try {
       const data = await getProductsFromDB();
-      setProducts(data || REAL_PRODUCTS);
+      setProducts(data || []);
     } catch (err) {
-      console.warn("Failed to load products, using default catalogue:", err);
-      setProducts(REAL_PRODUCTS);
+      console.warn("Failed to load products:", err);
+      setProducts([]);
     } finally {
       setLoading(false);
     }

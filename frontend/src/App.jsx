@@ -16,6 +16,21 @@ import Clients from '@/pages/Clients';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 
+// Dedicated About Sub-Pages
+import CompanyOverview from '@/pages/about/CompanyOverview';
+import MissionVisionValues from '@/pages/about/MissionVisionValues';
+import OurJourney from '@/pages/about/OurJourney';
+import OurStrength from '@/pages/about/OurStrength';
+import OurValueProposition from '@/pages/about/OurValueProposition';
+import OurManagement from '@/pages/about/OurManagement';
+
+// CSR & Media Pages
+import CsrPolicy from '@/pages/csr/CsrPolicy';
+import AnnualReturnPolicy from '@/pages/csr/AnnualReturnPolicy';
+import MediaBlogs from '@/pages/media/MediaBlogs';
+import BlogPost from '@/pages/media/BlogPost';
+import Gallery from '@/pages/Gallery';
+
 import AdminLayout from '@/components/admin/AdminLayout';
 import Login from '@/pages/admin/Login';
 import Dashboard from '@/pages/admin/Dashboard';
@@ -42,6 +57,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/categories" component={Categories} />
+      <Route path="/our-products" component={Categories} />
       <Route path="/catalogues" component={Catalogues} />
       <Route path="/products" component={Products} />
       <Route path="/products/:id" component={ProductDetail} />
@@ -49,7 +65,43 @@ function Router() {
       <Route path="/industries" component={Industries} />
       <Route path="/services" component={Services} />
       <Route path="/clients" component={Clients} />
+      
+      {/* About Section Master & Dedicated Subpages */}
       <Route path="/about" component={About} />
+      <Route path="/company-overview" component={CompanyOverview} />
+      <Route path="/about/company-overview" component={CompanyOverview} />
+      <Route path="/mission-vision-values" component={MissionVisionValues} />
+      <Route path="/about/mission-vision-values" component={MissionVisionValues} />
+      <Route path="/our-journey" component={OurJourney} />
+      <Route path="/about/journey" component={OurJourney} />
+      <Route path="/about/our-journey" component={OurJourney} />
+      <Route path="/our-strength" component={OurStrength} />
+      <Route path="/about/strength" component={OurStrength} />
+      <Route path="/about/our-strength" component={OurStrength} />
+      <Route path="/our-value-proposition" component={OurValueProposition} />
+      <Route path="/about/value-proposition" component={OurValueProposition} />
+      <Route path="/about/our-value-proposition" component={OurValueProposition} />
+      <Route path="/our-management" component={OurManagement} />
+      <Route path="/about/management" component={OurManagement} />
+      <Route path="/about/our-management" component={OurManagement} />
+
+      {/* CSR & Governance Routes */}
+      <Route path="/csr-policy" component={CsrPolicy} />
+      <Route path="/csr" component={CsrPolicy} />
+      <Route path="/annual-return-policy" component={AnnualReturnPolicy} />
+      <Route path="/annual-return" component={AnnualReturnPolicy} />
+      <Route path="/annual-returns" component={AnnualReturnPolicy} />
+
+      {/* Media & Blogs & Gallery Routes */}
+      <Route path="/media-blogs" component={MediaBlogs} />
+      <Route path="/media" component={MediaBlogs} />
+      <Route path="/blogs" component={MediaBlogs} />
+      <Route path="/blog" component={MediaBlogs} />
+      <Route path="/blog/:slug" component={BlogPost} />
+      <Route path="/blogs/:slug" component={BlogPost} />
+      <Route path="/media-blogs/:slug" component={BlogPost} />
+      <Route path="/gallery" component={Gallery} />
+
       <Route path="/contact" component={Contact} />
       
       {/* Admin Routes */}
