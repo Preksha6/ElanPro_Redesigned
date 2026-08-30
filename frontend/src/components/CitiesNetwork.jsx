@@ -251,18 +251,18 @@ export default function CitiesNetwork() {
     if (!mapContainerRef.current) return;
     if (mapInstanceRef.current) return; // already initialized
 
-    // Center on India
+    // Center on India with clean controls (no attribution banner)
     const map = L.map(mapContainerRef.current, {
       center: [22.0, 79.0],
       zoom: 5,
       minZoom: 4,
       maxZoom: 16,
-      scrollWheelZoom: false
+      scrollWheelZoom: false,
+      attributionControl: false
     });
 
     // Real OpenStreetMap Tile Layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19
     }).addTo(map);
 
@@ -424,12 +424,6 @@ export default function CitiesNetwork() {
               className="w-full h-full"
               style={{ minHeight: '380px' }}
             />
-
-            {/* Map Top Status Pill */}
-            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-3 py-1 rounded-xl text-[11px] font-bold text-slate-800 border border-slate-200 shadow-xs flex items-center gap-1.5 pointer-events-none z-[1000]">
-              <MapPin className="w-3.5 h-3.5 text-primary" />
-              <span>All Nationwide Hubs Active on OpenStreetMap</span>
-            </div>
           </div>
 
           {/* Selected Hub Detail Card (5 cols) */}

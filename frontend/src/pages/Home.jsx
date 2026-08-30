@@ -1,18 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from "wouter";
-import { ArrowRight, ChevronRight, ShieldCheck, Shield, Zap, ThermometerSnowflake, Clock, Leaf, Truck, Headset, Snowflake } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/ui/motion";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
 import YouTubeVideoShowcase from "@/components/YouTubeVideoShowcase";
 import CitiesNetwork from "@/components/CitiesNetwork";
 import CinematicHero from "@/components/hero/CinematicHero";
 import AboutReveal from "@/components/AboutReveal";
 import ShowcaseScroll from "@/components/ShowcaseScroll";
-
-
 import { supabase } from "@/lib/supabase";
+
 // Simple counter hook
 function useCounter(end, duration = 2000) {
   const [count, setCount] = useState(0);
@@ -71,11 +68,8 @@ const HERO_BACKGROUNDS = [
 ];
 
 export default function Home() {
-  const [activeSector, setActiveSector] = useState(null);
-  const [hoveredSector, setHoveredSector] = useState(null);
   const [stats, setStats] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
-  const [industries, setIndustries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentBg, setCurrentBg] = useState(0);
 
@@ -89,26 +83,13 @@ export default function Home() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [statsRes, productsRes, industriesRes] = await Promise.all([
+        const [statsRes, productsRes] = await Promise.all([
           supabase.from('stats').select('*').order('id', { ascending: true }),
-          supabase.from('products').select('*').limit(4),
-          supabase.from('industries').select('*')
+          supabase.from('products').select('*').limit(4)
         ]);
         
         if (statsRes.data) setStats(statsRes.data);
         if (productsRes.data) setTopProducts(productsRes.data);
-        if (industriesRes.data) {
-          // Fallback override for missing/broken images in database
-          const overrideImages = {
-            'ind-1': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1920', // Hospitality
-            'ind-4': 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1920'  // Healthcare
-          };
-          const fixedIndustries = industriesRes.data.map(ind => ({
-            ...ind,
-            image: overrideImages[ind.id] || ind.image
-          }));
-          setIndustries(fixedIndustries);
-        }
       } catch (error) {
         console.error("Error fetching home data:", error);
       } finally {
@@ -131,106 +112,8 @@ export default function Home() {
         <AboutReveal />
       </section>
 
-
-
       {/* Wavebird-Style 3D Product Showcase */}
       <ShowcaseScroll />
-
-      {/* Industry Solutions (Sectors) */}
-      <section className="pt-16 pb-12 relative overflow-hidden bg-slate-950 text-white">
-        
-        {/* Background glow lines */}
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-        <div className="absolute -top-[300px] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-50" />
-        
-        <div className="container mx-auto px-4 md:px-6 relative z-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
-            <FadeIn>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-primary-light text-sm font-semibold mb-4 backdrop-blur-sm">
-                <span className="w-2 h-2 rounded-full bg-accent" />
-                Industry Solutions
-              </div>
-              <h2 className="text-3xl font-display font-bold leading-tight">
-                Empowering <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-light to-accent">Every Sector.</span>
-              </h2>
-            </FadeIn>
-            <FadeIn delay={0.2} className="max-w-md">
-              <p className="text-gray-400 text-lg leading-relaxed">
-                Tailored commercial refrigeration engineered to meet the stringent demands of India's fastest-growing industries.
-              </p>
-            </FadeIn>
-          </div>
-
-          <FadeIn delay={0.3}>
-            <div className="flex flex-col lg:flex-row h-[650px] sm:h-[750px] lg:h-[400px] gap-4 w-full">
-              {industries.map((ind, i) => {
-                const isExpanded = activeSector === i || hoveredSector === i;
-                return (
-                  <div 
-                    key={ind.id} 
-                    onClick={() => {
-                      if (activeSector === i || hoveredSector === i) {
-                        setActiveSector(null);
-                        setHoveredSector(null);
-                      } else {
-                        setActiveSector(i);
-                      }
-                    }}
-                    onMouseEnter={() => setHoveredSector(i)}
-                    onMouseLeave={() => setHoveredSector(null)}
-                    className={`relative overflow-hidden rounded-3xl cursor-pointer shadow-2xl border border-white/5 bg-gray-900 transition-all duration-[600ms] ease-out will-change-[flex]
-                      ${isExpanded ? 'flex-[2.5] lg:flex-[3.5]' : 'flex-1'}`}
-                  >
-                    <img 
-                      src={ind.image} 
-                      alt={ind.name} 
-                      className={`absolute inset-0 w-full h-full object-cover object-center transition-transform duration-1000 ease-out will-change-transform
-                        ${isExpanded ? 'scale-[1.10] opacity-100' : 'scale-[1.25] opacity-60'}`} 
-                    />
-                    <div className={`absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-transparent transition-opacity duration-700
-                      ${isExpanded ? 'opacity-80 lg:opacity-40' : 'opacity-80'}`} />
-                    
-                    {/* Highlight Glow */}
-                    <div className={`absolute inset-0 transition-opacity duration-1000 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_70%)] pointer-events-none
-                      ${isExpanded ? 'opacity-100' : 'opacity-0'}`} />
-
-                    <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-8">
-                      <div className={`transform transition-transform duration-700 ease-out flex flex-col h-full justify-end will-change-transform
-                        ${isExpanded ? 'translate-y-0' : 'translate-y-4 lg:translate-y-12'}`}>
-                        
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className={`w-12 h-12 rounded-full backdrop-blur-md border flex items-center justify-center text-white shrink-0 transition-colors duration-500
-                            ${isExpanded ? 'bg-primary border-primary' : 'bg-white/10 border-white/20'}`}>
-                            <span className="font-bold text-lg">{i + 1}</span>
-                          </div>
-                          <h3 className="text-2xl font-display font-bold text-white tracking-wide whitespace-nowrap drop-shadow-lg">
-                            {ind.name}
-                          </h3>
-                        </div>
-
-                        <div className={`grid transition-[grid-template-rows] duration-700 ease-out
-                          ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
-                          <div className="overflow-hidden">
-                            <p className={`text-gray-300 text-sm md:text-base leading-relaxed max-w-xl mb-4 transition-all duration-700
-                              ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 lg:-translate-y-4'}`}>
-                              {ind.description}
-                            </p>
-                            <div className={`flex items-center text-accent text-sm md:text-base font-bold transition-all duration-700 delay-100 pb-2
-                              ${isExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}>
-                              {ind.stat} <ArrowRight className="ml-2 w-4 h-4" />
-                            </div>
-                          </div>
-                        </div>
-
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </FadeIn>
-        </div>
-      </section>
 
       {/* Why Choose Us: Official YouTube Video Showcase with Autoplay */}
       <YouTubeVideoShowcase />
@@ -257,6 +140,6 @@ export default function Home() {
           </FadeIn>
         </div>
       </section>
-    </Layout>);
-
+    </Layout>
+  );
 }
